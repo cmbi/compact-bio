@@ -2,9 +2,11 @@
 import argparse
 import os
 import sys
+from importlib.util import spec_from_file_location,module_from_spec
 
 # local imports
 from rbomcl.main import main
+from rbomcl import process_data as prd
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -97,6 +99,52 @@ def parse_arguments():
     
     return args
 
+def parse_settings(settings_fn):
+    settings_name = os.path.basename(settings_fn).split('.')[0]
+    spec = spec_from_file_location(settings_name,settings_fn)
+    settings = module_from_spec(spec)
+    spec.loader.exec_module(settings)
+    
+    sample_data = settings.sample_data
+
+    mapping_data = settings.mapping_data
+
+    return sample_data,mapping_data
+
+def parse_profiles(fn_dict):
+    """
+    parse profiles for all complexomes,samples in fn_dict
+    """
+    sample_dict = {}
+    for complexome,samplefiles in fn_dict.items():
+        complexome_samples = {}
+        for samplename,fname in samplefiles.items():
+            sample = prd.parse_profile(fname)
+            complexome_samples[samplename] = sample
+        sample_dict[complexome] = complexome_samples
+   
+    return sample_dict
+
+def parse_mappings(fn_dict):
+    return {name:prd.parse_mapping(fn) 
+            for name,fn in fn_dict.items()}
+
+def get_nested_tags(corr_dict):
+    """
+    """
+    nested_tags = {}
+    for comp_name,comp_dict in corr_dict.items():
+        nested_tags[comp_name] = list(comp_dict.keys())
+    return nested_tags
+
+def get_int_matrices(corr_dict):
+    """
+    """
+    int_matrices = {}
+    for comp_dict in corr_dict.values():
+        int_matrices = {**int_matrices,**comp_dict}
+    return int_matrices
+
 def run():
     # parse arguments
     try:
@@ -105,8 +153,14 @@ def run():
         print(f'problem parsing arguments: {e}',file=sys.stderr)
         sys.exit()
     
+    # parse input settings
+    parse_settings(args.settings)
+
+
     # parse data files
-    
+    try:
+        parse_profiles()
+
     # run analysis
 
 

@@ -1,9 +1,11 @@
+# base library imports
 from itertools import combinations, chain, product
-
-import pandas as pd
-import numpy as np
-
 import subprocess as sp
+from warnings import warn
+
+# third party library
+import numpy as np
+import pandas as pd
 
 # local library imports
 from . import process_data as prd
@@ -11,7 +13,7 @@ from .utils import get_stripped_mapping,mcl_available
 
 # check if mcl is available, warn if not
 if not mcl_available():
-    print("Warning. MCL not available, cannot perform"
+    warn("Warning. MCL not available, cannot perform"
           " clustering if MCL executable is not in PATH")
 
 # normalise correlation and RBO scores
