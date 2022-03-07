@@ -12,6 +12,7 @@ from . import process_data as prd
 from . import pairwise_scoring as ps
 from . import reciprocal_hits as rh
 from . import MCL_clustering as mcl
+from .utils import mcl_available
 
 ### Helper Functions ###
 
@@ -584,10 +585,11 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
             criterium to determine top hit
             "percent" counts proteins if both are in each
             other's top n % percent of ranked interactor lists
+            "best" takes only the single best hit
         th_percent (int, optional): Defaults to 1.
             top percent to consider when using "percent" th_criterium
         include_within (bool, optional): Defaults to True.
-            whether to include within profile interaction scores
+            whether to include within sample interaction scores
             in combined network used as input for MCL clustering
         wbratio (int, optional): Defaults to 1.
             ratio of within/between score averages. within (interaction)
@@ -636,6 +638,12 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
         'nodes': dataframe
             network nodes part of one of the clusters
     """
+    # check if mcl is available, error if not
+    if not mcl_available():
+        msg = ("MCL not available, cannot perform analysis"
+            " if MCL executable is not in PATH")
+        raise ValueError(msg)
+
     ## validate input parameters ##
     validate_params(locals())
 

@@ -4,6 +4,13 @@ except BaseException:
     msg = "cannot import requests package, download_sample_abuns function not available"
     print(msg)
 
+from shutil import which
+
+def mcl_available():
+    """
+    check whether MCL tool is in PATH and marked as an executable
+    """
+    return which("mcl") is not None
 
 def download_sample_abuns(
         sample_id, out_fn,
