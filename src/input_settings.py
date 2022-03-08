@@ -14,12 +14,12 @@ as well as the names of the collections they belong to
 sample_data = {
     'HUM':{
         # 'CRS86': '../data/CRS86_genenames.tsv',
-        'CRS50': '../data/CRS50_genenames.tsv',
+        'CRS50': '/home/joeri/Documents/Apicomplexa_project/data/CRS50_genenames.tsv',
 
     },
     'PF3_GAM':{
-        'GAM1': '../data/Plasmo_GAM1_processed_renamed.tsv',
-        'GAM2': '../data/Plasmo_GAM2_processed_renamed.tsv',
+        'GAM1': '/home/joeri/Documents/Apicomplexa_project/data/Plasmo_GAM1_processed_renamed.tsv',
+        'GAM2': '/home/joeri/Documents/Apicomplexa_project/data/Plasmo_GAM2_processed_renamed.tsv',
         
     },
     # 'TOX':{
@@ -37,7 +37,7 @@ identifiers
 """
 
 mapping_data = {
-    ("HUM","PF3_GAM"):"../data/mappings/hum_pf_mapping.tsv",
-    ("TOX","HUM"):"../data/mappings/toxo_hum_mapping.tsv",
-    ("TOX","PF3_GAM"):"../data/mappings/toxo_pf_mapping.tsv",
+    ("HUM","PF3_GAM"):"/home/joeri/Documents/Apicomplexa_project/data/mappings/hum_pf_mapping.tsv",
+    ("TOX","HUM"):"/home/joeri/Documents/Apicomplexa_project/data/mappings/toxo_hum_mapping.tsv",
+    ("TOX","PF3_GAM"):"/home/joeri/Documents/Apicomplexa_project/data/mappings/toxo_pf_mapping.tsv",
 }
