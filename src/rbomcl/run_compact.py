@@ -10,10 +10,12 @@ from rbomcl import process_data as prd
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
-        description="run CompaCt from the command line",
+        prog="compact",
+        description="CompaCt command line tool",
         )
     
     # arguments
+    parser.add_argument('-v','--version', action='version',version=f'compact v0.0.1')
     parser.add_argument("settings",help="path of input settings file",
                         type=argparse.FileType('r'))
     parser.add_argument(
@@ -154,16 +156,29 @@ def run():
         sys.exit()
     
     # parse input settings
-    parse_settings(args.settings)
-
+    sample_data,mapping_data = parse_settings(args.settings)
 
     # parse data files
     try:
-        parse_profiles()
+        samples = parse_profiles(sample_data)
+    except Exception as e:
+        print(f'problem parsing sample data: {e}',file=sys.stderr)
+        sys.exit()
+
+    try:
+        mappings = parse_mappings(mapping_data)
+    except Exception as e:
+        print(f'problem parsing mapping data: {e}',file=sys.stderr)
+        sys.exit()
 
     # run analysis
+    try:
+        #run analysis
+        pass
+    except Exception as e:
+        print(f'problem during analysis: {e}',file=sys.stderr)
 
-
+    return 0
 
 if __name__ == "__main__":
 
