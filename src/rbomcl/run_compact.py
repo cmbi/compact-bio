@@ -7,6 +7,7 @@ from importlib.util import spec_from_file_location,module_from_spec
 # local imports
 from rbomcl.main import main
 from rbomcl import process_data as prd
+import utils
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -18,6 +19,8 @@ def parse_arguments():
     parser.add_argument('-v','--version', action='version',version=f'compact v0.0.1')
     parser.add_argument("settings",help="path of input settings file",
                         type=argparse.FileType('r'))
+    parser.add_argument('-i','--in-type',choices=['abun','int'],default='abun',
+                        help='whether input samples are raw feature abundances or interaction matrices')
     parser.add_argument(
         "-p", type=float,default=0.9,
         help="rank biased overlap p parameter, default=0.9")
@@ -42,7 +45,7 @@ def parse_arguments():
         help="ratio of within/between score averages. default=1"
     )
     parser.add_argument(
-        '-i','--mcl-inflation',default=2,
+        '--mcl-inflation',default=2,
         help='inflation param of MCL tool, determines cluster granularity. default=2'
     )
     parser.add_argument(
@@ -131,6 +134,24 @@ def parse_mappings(fn_dict):
     return {name:prd.parse_mapping(fn) 
             for name,fn in fn_dict.items()}
 
+def process_input(args,samples):
+    """_summary_
+
+    Args:
+        args (_type_): _description_
+        mappings (_type_): _description_
+    """
+    flattened_samples = get_int_matrices(samples)
+    nested_tags = get_nested_tags(samples)
+
+    # convert abuns to interaction scores if necessary
+    if args.in_type == 'abun':
+        corr_dict = utils.correlate_samples(flattened_samples)
+    else:
+        corr_dict = flattened_samples
+
+    return nested_tags,corr_dict
+
 def get_nested_tags(corr_dict):
     """
     """
@@ -165,16 +186,46 @@ def run():
         print(f'problem parsing sample data: {e}',file=sys.stderr)
         sys.exit()
 
+    # parse mappings
     try:
         mappings = parse_mappings(mapping_data)
     except Exception as e:
         print(f'problem parsing mapping data: {e}',file=sys.stderr)
         sys.exit()
 
+    # parse reference (if applicable)
+    if args.perf_cluster_annot:
+        try:
+            ref_groups = prd.parse_gmt(args.ref_file)
+        except Exception as e:
+            print(f'problem parsing mapping data: {e}',file=sys.stderr)
+            sys.exit()
+    else:
+        ref_groups=None
+
+    # process input data
+    try:
+        nested_tags,int_matrices = process_input(args,samples)
+    except Exception as e:
+        print(f'problem processing input data: {e}',file=sys.stderr)
+        sys.exit()
+
     # run analysis
     try:
-        #run analysis
-        pass
+        main(
+            nested_tags,int_matrices,mappings,
+            p=args.p,min_search_weight=args.min_search_weight,
+            th_criterium=args.th_criterium,th_percent=args.th_percent,
+            include_within=args.include_within,wbratio=args.wbratio,
+            mcl_inflation=args.mcl_inflation,output_location=args.output_loc,
+            job_name=args.job_name,report_threshold=args.report_threshold,
+            save_rthits=args.save_rthits,
+            perf_cluster_annotation=args.perf_cluster_annot,
+            reference_groups=ref_groups, reference_tag=args.ref_tag,
+            annot_fraction_threshold=args.annot_ref_th,
+            annot_filter_mem_threshold=args.annot_mem_th,
+            processes=args.processes
+            )
     except Exception as e:
         print(f'problem during analysis: {e}',file=sys.stderr)
 
@@ -183,7 +234,3 @@ def run():
 if __name__ == "__main__":
 
     run()
-
-    # print(args)
-
-    # print("hello")

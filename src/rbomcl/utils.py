@@ -118,7 +118,7 @@ def correlate_samples(samples, method="pearson"):
     """
     int_matrices = {}
     for name, sample in samples.items():
-        correlated = profile.transpose().corr(method=method)
+        correlated = sample.transpose().corr(method=method)
         int_matrices[name] = correlated
 
     return int_matrices
