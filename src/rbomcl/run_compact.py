@@ -30,7 +30,7 @@ def parse_arguments():
         )
     parser.add_argument(
         '--th-criterium',choices=['percent','best'],default="percent",
-        help="threshold criterium for determination of reciprocal top hit"
+        help="threshold criterium for determination of reciprocal top hit, default='percent'"
     )
     parser.add_argument(
         "--th-percent",type=int,default=1,
