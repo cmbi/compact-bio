@@ -190,6 +190,25 @@ def parse_top_hits(top_hit_fn):
     )
 
 
+def parse_MCL_result(res_fn):
+    """
+    parses MCL result from file into dict
+
+    Args:
+        res_fn (string): filepath of MCL result
+
+    Returns:
+        dict: containing all MCL clusters
+    """
+    clusters = {}
+    with open(res_fn, 'r') as f_obj:
+        for i, line in enumerate(f_obj):
+            ids = line.strip().split('\t')
+            # ignore clusters with only one element
+            if len(ids) > 1:
+                clusters[i] = ids
+    return clusters
+
 def annotate_df(to_annot, annot_fn):
     """
     """

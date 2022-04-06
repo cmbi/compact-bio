@@ -13,35 +13,7 @@ from rbo import RankingSimilarity
 
 # local library imports
 from . import process_data as prd
-
-
-def get_comparison_matches(left, right, mapping=None):
-    """
-    determine id matches between comparison
-
-    to get the id matches between indexes of
-    to-be-compared samples, optionally using a mapping
-
-    Args:
-        left|right (list-like): indexes of compared samples
-        mapping (dict or None, optional): Defaults to None.
-            dict with id mapping from left to right
-            if None ids are directly compared
-
-    Returns:
-        list: ids that match between indexes
-        OR
-        dict: matching id pairs from left and right
-            key: left id,  value: right id
-    """
-    if mapping:
-        matches = {key: val for key, val in mapping.items()
-                   if key in left and val in right}
-    else:
-        matches = [prot_id for prot_id in left if prot_id in right]
-
-    return matches
-
+from .utils import get_comparison_matches
 
 def rename_indices(left, right, mapping):
     """

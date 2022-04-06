@@ -12,45 +12,9 @@ from . import process_data as prd
 from . import pairwise_scoring as ps
 from . import reciprocal_hits as rh
 from . import MCL_clustering as mcl
-from .utils import mcl_available
+from . import utils as ut
 
 ### Helper Functions ###
-
-def get_comp_mapping(left, right, nested_tags, mappings):
-    """
-    grab mapping for the current comparison of individual samples
-
-    Args:
-        left|right (str): sample-level tags in this comparison
-        nested_tags (dict): dict with nested tag structure for profiles
-            keys: collection-level tags
-            values: sample-level tags
-        mappings (dict): contains id mappings between collections
-            keys: tuple with (query,subject) collection-level tags
-            values: dicts with id mappings from query to subject
-
-    Returns:
-        dict: mapping for given sample-level query,subject comparison
-    """
-    # get collection-level tags for current samples
-    # OR: which collections do the samples belong to?
-    # assumes it is present and only in 1 outer entry
-    for key, values in nested_tags.items():
-        if left in values:
-            left_tag = key
-        if right in values:
-            right_tag = key
-
-    # get (orthology) mapping if its provided
-    if (left_tag, right_tag) in mappings.keys():
-        mapping = mappings[(left_tag, right_tag)]
-    elif (right_tag, left_tag) in mappings.keys():
-        mapping = prd.invert_mapping(mappings[(right_tag, left_tag)])
-    else:
-        mapping = False
-
-    return mapping
-
 
 def report_matches(comps, int_matrices, nested_tags, mappings, min_count=10):
     """
@@ -75,12 +39,12 @@ def report_matches(comps, int_matrices, nested_tags, mappings, min_count=10):
         ValueError: in case of invalid min_count parameter
     """
     for left, right in comps:
-        mapping = get_comp_mapping(left, right, nested_tags, mappings)
+        mapping = ut.get_comp_mapping(left, right, nested_tags, mappings)
 
         left_index = int_matrices[left].index
         right_index = int_matrices[right].index
 
-        matches = ps.get_comparison_matches(left_index, right_index,
+        matches = ut.get_comparison_matches(left_index, right_index,
                                             mapping=mapping)
         match_count = len(matches)
         if min_count is None:
@@ -290,7 +254,7 @@ def between_scoring(nested_tags, int_matrices, mappings,
         left_scores = int_matrices[left]
         right_scores = int_matrices[right]
 
-        mapping = get_comp_mapping(left, right, nested_tags, mappings)
+        mapping = ut.get_comp_mapping(left, right, nested_tags, mappings)
 
         rec_top_hits = score_comparison(
             left_scores, right_scores,
@@ -639,7 +603,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
             network nodes part of one of the clusters
     """
     # check if mcl is available, error if not
-    if not mcl_available():
+    if not ):
         msg = ("MCL not available, cannot perform analysis"
             " if MCL executable is not in PATH")
         raise ValueError(msg)
@@ -741,6 +705,6 @@ if __name__ == "__main__":
     }
 
     mappings = {('AS', 'GAM'): {'prot1': 'prot2'}}
-    get_comp_mapping(left, right, nested_tags, mappings)
+    ut.get_comp_mapping(left, right, nested_tags, mappings)
 
     quit()

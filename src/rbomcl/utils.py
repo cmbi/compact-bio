@@ -68,7 +68,6 @@ def map_df_index(df, mapping):
     df.set_index('mapped', inplace=True)
     return df
 
-
 def get_stripped_mapping(full_id_list, sep='::'):
     """
     get dict with stripped ids mapping to list of their full ids
@@ -83,6 +82,71 @@ def get_stripped_mapping(full_id_list, sep='::'):
             mapping[stripped] = [full_id]
     return mapping
 
+def invert_mapping(mapping_dict):
+    """inverts given dict"""
+    return {val:key for key,val in mapping_dict.items()}
+
+def get_comp_mapping(left, right, nested_tags, mappings):
+    """
+    grab mapping for the current comparison of individual samples
+
+    Args:
+        left|right (str): sample-level tags in this comparison
+        nested_tags (dict): dict with nested tag structure for profiles
+            keys: collection-level tags
+            values: sample-level tags
+        mappings (dict): contains id mappings between collections
+            keys: tuple with (query,subject) collection-level tags
+            values: dicts with id mappings from query to subject
+
+    Returns:
+        dict: mapping for given sample-level query,subject comparison
+    """
+    # get collection-level tags for current samples
+    # OR: which collections do the samples belong to?
+    # assumes it is present and only in 1 outer entry
+    for key, values in nested_tags.items():
+        if left in values:
+            left_tag = key
+        if right in values:
+            right_tag = key
+
+    # get (orthology) mapping if its provided
+    if (left_tag, right_tag) in mappings.keys():
+        mapping = mappings[(left_tag, right_tag)]
+    elif (right_tag, left_tag) in mappings.keys():
+        mapping = invert_mapping(mappings[(right_tag, left_tag)])
+    else:
+        mapping = False
+
+    return mapping
+
+def get_comparison_matches(left, right, mapping=None):
+    """
+    determine id matches between comparison
+
+    to get the id matches between indexes of
+    to-be-compared samples, optionally using a mapping
+
+    Args:
+        left|right (list-like): indexes of compared samples
+        mapping (dict or None, optional): Defaults to None.
+            dict with id mapping from left to right
+            if None ids are directly compared
+
+    Returns:
+        list: ids that match between indexes
+        OR
+        dict: matching id pairs from left and right
+            key: left id,  value: right id
+    """
+    if mapping:
+        matches = {key: val for key, val in mapping.items()
+                   if key in left and val in right}
+    else:
+        matches = [prot_id for prot_id in left if prot_id in right]
+
+    return matches
 
 def get_cluster_max_fraction(clusters, profile):
     """

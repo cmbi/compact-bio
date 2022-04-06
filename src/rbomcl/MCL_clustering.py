@@ -137,25 +137,6 @@ def run_MCL(input_fn, output_fn, inflation=2, processes=1):
 # process the MCL results
 
 
-def parse_MCL_result(res_fn):
-    """
-    parses MCL result from file into dict
-
-    Args:
-        res_fn (string): filepath of MCL result
-
-    Returns:
-        dict: containing all MCL clusters
-    """
-    clusters = {}
-    with open(res_fn, 'r') as f_obj:
-        for i, line in enumerate(f_obj):
-            ids = line.strip().split('\t')
-            # ignore clusters with only one element
-            if len(ids) > 1:
-                clusters[i] = ids
-    return clusters
-
 
 def separate_subclusters(clusters, nested_tags):
     """
@@ -221,7 +202,6 @@ def get_clust_member_occurence(clust, tags, as_fraction=True):
         pooled: whether result data has pooled samples
         report_threshold: at which threshold to count clust sizes
     """
-
 
 def get_cluster_info(clusters, clusters_split,
                      report_threshold=0.5):
@@ -289,7 +269,7 @@ def get_cluster_info(clusters, clusters_split,
     return cluster_info
 
 
-def process_MCL_result(res_fn, neted_tags,
+def process_MCL_result(res_fn, nested_tags,
                        report_threshold=0.5):
     """
     parses and processes raw MCL output
@@ -311,23 +291,16 @@ def process_MCL_result(res_fn, neted_tags,
             split per collection, samples aggregated
         clust_info (pd df): table with information per cluster
             rows: cluster ids
-            columns: various cluster metrics./=
+            columns: various cluster metrics
     """
-    clusts = parse_MCL_result(res_fn)
+    clusts = prd.parse_MCL_result(res_fn)
     clusts_split = separate_subclusters(clusts,
-                                        neted_tags)
+                                        nested_tags)
     # STILL NEED TO REWRITE separates TOOL TO PROPERLY COUNT
     # TOTAL CLUSTER SIZES (AFTER POOLING)
     clust_info = get_cluster_info(clusts, clusts_split,
                                   report_threshold=report_threshold)
     return clusts, clusts_split, clust_info
-
-    """
-    find number of matches between subclusters
-
-    subclusters: dict with tag:subcluster structure
-    """
-
 
 def fetch_subcluster_matches(subclusters, mappings, comps,
                              report_threshold=None):
@@ -432,7 +405,8 @@ def avg_clust_weight(size, total_weight):
     return total_weight / poss_edges
 
 
-def get_match_counts(matches):
+def get_match_counts(matchesfetch_subcluster_matches
+fetch_subcluster_matches):
     """
     counts number of matches for each comparison
 
