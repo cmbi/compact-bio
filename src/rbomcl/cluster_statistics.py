@@ -1,6 +1,9 @@
 from itertools import combinations
+import multiprocessing as mp
+from re import L
 
 import numpy as np
+import pandas as pd
 
 import utils as ut
 import process_data as prd
@@ -124,9 +127,22 @@ def sum_counts(comp_counts,nested_tags):
     
     return summed_counts
 
-def sample_cluster(composition,sample_ids):
+def get_match_counts(nested_clusters,mappings,nested_tags):
     """
-    sample clusters with same sample composition as given cluster
+    count matches for every cluster
+    """
+    match_counts = {}
+    for cid,clust in nested_clusters.items():
+        print(f'\rcounting matches for cluster: {cid}',end="")
+        clust_matches = count_comp_matches(clust,mappings,nested_tags)
+        summed_counts = sum_counts(clust_matches,nested_tags)
+        match_counts[cid] = summed_counts
+    print('\n')
+    return match_counts
+
+def sample_null(composition,sample_ids):
+    """
+    sample null clusters with same sample composition as given cluster
     """
     null_sample = {}
     for sample,size in composition.items():
@@ -135,21 +151,91 @@ def sample_cluster(composition,sample_ids):
         null_sample[sample] = sampled
     return null_sample
 
-def get_null_counts(nested_cluster,sample_ids,nested_tags,mappings,
+def sample_null_counts(nested_cluster,sample_ids,nested_tags,mappings,
                     n=1000):
+    """
+    sample null distribution of counts for given cluster
+    """
     composition = {key: len(val) for key,val in nested_cluster.items()}
-    print(composition)
 
     null_counts = []
     for i in range(n):
         print(f'\rtaking null sample {i+1} of {n}',end="")
-        null_sample = sample_cluster(composition,sample_ids)
+        null_sample = sample_null(composition,sample_ids)
         matches = count_comp_matches(null_sample,mappings,nested_tags)
         summed_counts = sum_counts(matches,nested_tags)
         null_counts.append(summed_counts)
-
+    print('\n')
     return null_counts
 
+def summarize_null(null_counts,real_counts):
+    """summarizes null counts and pval for real counts"""
+    df = pd.DataFrame(null_counts)
+    means = df.mean().to_dict()
+    stds = df.std().to_dict()
+    n = df.shape[0]
+
+    pvals = {}
+    for comp,count in real_counts.items():
+        if count == 0:
+            p = 1
+        else:
+            p = ((df[comp] > count).sum())/n
+        pvals[comp] = p
+
+    return means,stds,pvals
+
+def score_cluster(nested_cluster,real_count,sample_ids,nested_tags,
+                  mappings,n):
+    """
+    score given cluster by sampling null and comparing to real counts
+    """
+    nulls = sample_null_counts(nested_cluster,sample_ids,nested_tags,
+                               mappings,n=n)
+    return summarize_null(nulls,real_count)
+
+def score_cluster_named(name,args):
+    return name,score_cluster(*args)
+
+def score_clusters(nested_clusters,real_counts,sample_ids,nested_tags,
+                   mappings,n=1000,processes=1):
+    """
+    apply cluster scoring to given set of clusters
+    """
+
+    to_iter = (
+            (cid,
+            (
+                clust,
+                real_counts[cid],
+                sample_ids,
+                nested_tags,
+                mappings,n
+            )
+        )
+        for cid,clust in nested_clusters.items())
+    pool = mp.Pool(processes)
+    result = pool.starmap(score_cluster_named,to_iter)
+
+    cluster_means = {}
+    cluster_stds = {}
+    cluster_pvals = {}
+    for name,(means,stds,pvals) in result:
+        cluster_means[name] = means
+        cluster_stds[name] = stds
+        cluster_pvals[name] = pvals
+
+    return cluster_means,cluster_stds,cluster_pvals
+
+    for cid,clust in nested_clusters.items():
+        print(f'\rscoring cluster: {cid}',end="")
+        means,stds,pvals = score_cluster(clust,real_counts[cid],sample_ids,
+                                         nested_tags,mappings,n=n)
+        cluster_means[cid] = means
+        cluster_stds[cid] = stds
+        cluster_pvals[cid] = pvals
+    print('\n')
+    return cluster_means,cluster_stds,cluster_pvals
 
 if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAMPLES IN
 
@@ -157,7 +243,7 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     from run_compact import parse_settings, parse_mappings,get_nested_tags,parse_profiles,get_int_matrices
     import pandas as pd
 
-    mcl_res_fn = '/home/joeri/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
+    mcl_res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
     settings_fn = '12_complexome_input.py'
     clusts = prd.parse_MCL_result(mcl_res_fn)
     sample_data,mapping_data = parse_settings(settings_fn)
@@ -167,7 +253,7 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     sample_ids = {name:profile.index.values 
                   for name,profile in profiles.items()}
 
-    print(sample_ids.keys())
+    # print(sample_ids.keys())
 
     # decide later how to get these in actual code
     nested_tags = get_nested_tags(sample_data)
@@ -175,27 +261,71 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     for tags in nested_tags.values():
         sample_tags += tags
 
+    # separate clusters into subclusters per sample
     nested_clusters = split_clusters(clusts,sample_tags)
 
-    c0_matches = count_comp_matches(
-        nested_clusters[200],
-        mappings,
-        nested_tags)
+    #### TAKE A SUBSET OF CLUSTERS FOR TESTING
+    # to_test = [5,6,7,10,20,100]
+    # nested_clusters = {i:nested_clusters[i] for i in to_test}
+    ##########################################
 
-    real_counts = sum_counts(c0_matches,nested_tags)
+    # count total and within-subcluster matches
+    real_counts = get_match_counts(nested_clusters,mappings,nested_tags)
 
-    null_counts = get_null_counts(
-        nested_clusters[200],
-        sample_ids,
-        nested_tags,
-        mappings,
-        n=200)
+    # as_df = pd.DataFrame.from_dict(res,orient='index')
+    # as_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/cluster_match_counts.tsv',sep='\t')
+
+    #filter relevant clusters
+    print('filtering clusters..')
+    filtered_ids = [cid for cid,counts in real_counts.items()
+                    if counts['total'] >= 2]
+    print(len(real_counts))
+    print(len(filtered_ids))
+    filtered_clusters = {i:nested_clusters[i] for i in filtered_ids}
+    filtered_counts = {i:real_counts[i] for i in filtered_ids}
+
+    # compute null-based scores for relevant clusters
+    print('scoring relevant clusters:')
+    means,stds,pvals = score_clusters(filtered_clusters,filtered_counts,
+                   sample_ids, nested_tags,mappings,n=1000,processes=5)
+
+    means = pd.DataFrame.from_dict(means,orient='index')
+    stds = pd.DataFrame.from_dict(stds,orient='index')
+    pvals = pd.DataFrame.from_dict(pvals,orient='index')
+
+    print(means.shape)
+    print(stds.shape)
+    print(pvals.shape)
+
+    means.to_csv('/home/joerivs/Downloads/test_cluster_means.tsv',sep='\t')
+    stds.to_csv('/home/joerivs/Downloads/test_cluster_stds.tsv',sep='\t')
+    pvals.to_csv('/home/joerivs/Downloads/test_cluster_pvals.tsv',sep='\t')
+
+
+    # print(as_df.shape)
+    # print(as_df.head())
+
+    # c0_matches = count_comp_matches(
+    #     nested_clusters[10],
+    #     mappings,
+    #     nested_tags)
+
+
+    # real_counts = sum_counts(c0_matches,nested_tags)
+
+    # null_counts = sample_null_counts(
+    #     nested_clusters[10],
+    #     sample_ids,
+    #     nested_tags,
+    #     mappings,
+    #     n=10)
     
-    null_df = pd.DataFrame(null_counts)
+    # print(null_counts)
+    # null_df = pd.DataFrame(null_counts)
     # print(null_df)
-    print(null_df.describe())
+    # print(null_df.describe())
 
-    print(real_counts)
+    # print(real_counts)
     # print(real_counts)
     # print(len(null_counts))
     # print(res)
