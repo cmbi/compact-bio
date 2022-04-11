@@ -1,6 +1,5 @@
 from itertools import combinations
 import multiprocessing as mp
-from re import L
 
 import numpy as np
 import pandas as pd
@@ -83,13 +82,16 @@ def get_sample_tags(nested_tags):
         sample_tags += tags
     return sample_tags
 
-def count_comp_matches(nested_cluster,mappings,nested_tags):
+def count_comp_matches(nested_cluster,mappings,nested_tags,
+                       get_poss_matches=True):
     """
+    count found matches per comparison for given cluster
     """
     sample_tags = get_sample_tags(nested_tags)
     comps = list(combinations(sample_tags, r=2))
     
-    comp_counts = {}
+    real_counts = {}
+    poss_counts = {}
     for left,right in comps:
         # check if comp is present
         if not (left in nested_cluster.keys() and right in nested_cluster.keys()):
@@ -101,8 +103,27 @@ def count_comp_matches(nested_cluster,mappings,nested_tags):
         matches = ut.get_comparison_matches(
             left_members,right_members,mapping=comp_mapping
         )
-        comp_counts[(left,right)] = len(matches)
-    return comp_counts
+        # get possible number of matches
+        if get_poss_matches:            
+            n_poss = count_possible_matches(len(left_members),len(right_members))
+            real_counts[(left,right)] = len(matches)
+            poss_counts[(left,right)] = n_poss
+    
+    if get_poss_matches:
+        return real_counts,poss_counts
+    else:
+        return real_counts
+
+def count_possible_matches(n_left,n_right):
+    """
+    count possible matches for given comparison
+
+    which is length of shortest list
+    """
+    if n_left < n_right:
+        return n_left
+    else:
+        return n_right
 
 def sum_counts(comp_counts,nested_tags):
     """
@@ -127,18 +148,39 @@ def sum_counts(comp_counts,nested_tags):
     
     return summed_counts
 
-def get_match_counts(nested_clusters,mappings,nested_tags):
+def get_match_counts(nested_clusters,mappings,nested_tags,
+                     report_fractions=True):
     """
     count matches for every cluster
     """
     match_counts = {}
+    match_fractions = {}
     for cid,clust in nested_clusters.items():
         print(f'\rcounting matches for cluster: {cid}',end="")
-        clust_matches = count_comp_matches(clust,mappings,nested_tags)
-        summed_counts = sum_counts(clust_matches,nested_tags)
-        match_counts[cid] = summed_counts
-    print('\n')
-    return match_counts
+        real_matches,poss_matches = count_comp_matches(clust,mappings,nested_tags)
+        real_summed = sum_counts(real_matches,nested_tags)
+        match_counts[cid] = real_summed
+        # as fraction of possible matches
+        if report_fractions:
+            poss_summed = sum_counts(poss_matches,nested_tags)
+            match_fractions[cid] = as_frac_of_poss(
+                real_summed,poss_summed)
+    if report_fractions:    
+        return match_counts,match_fractions
+    else:
+        return match_counts
+
+def as_frac_of_poss(real,poss):
+    """
+    convert counts to fraction of possible counts
+    """
+    frac_of_poss = {}
+    for col,count in real.items():
+        if count == 0:
+            frac_of_poss[col] = 0
+        else:
+            frac_of_poss[col] = count/poss[col]
+    return frac_of_poss
 
 def sample_null(composition,sample_ids):
     """
@@ -243,7 +285,7 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     from run_compact import parse_settings, parse_mappings,get_nested_tags,parse_profiles,get_int_matrices
     import pandas as pd
 
-    mcl_res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
+    mcl_res_fn = '/home/joeri/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
     settings_fn = '12_complexome_input.py'
     clusts = prd.parse_MCL_result(mcl_res_fn)
     sample_data,mapping_data = parse_settings(settings_fn)
@@ -270,46 +312,57 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     ##########################################
 
     # count total and within-subcluster matches
-    real_counts = get_match_counts(nested_clusters,mappings,nested_tags)
+    match_counts,match_fractions = get_match_counts(
+        nested_clusters,mappings,nested_tags)
+
+    match_counts_df = pd.DataFrame.from_dict(
+        match_counts,orient='index')
+    match_fractions_df = pd.DataFrame.from_dict(
+        match_fractions,orient='index')
+    match_counts_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_counts.tsv',sep='\t')
+    match_fractions_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_fractions.tsv',sep='\t')
 
     # as_df = pd.DataFrame.from_dict(res,orient='index')
-    # as_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/cluster_match_counts.tsv',sep='\t')
 
     #filter relevant clusters
-    print('filtering clusters..')
-    filtered_ids = [cid for cid,counts in real_counts.items()
-                    if counts['total'] >= 2]
-    print(len(real_counts))
-    print(len(filtered_ids))
-    filtered_clusters = {i:nested_clusters[i] for i in filtered_ids}
-    filtered_counts = {i:real_counts[i] for i in filtered_ids}
+    # print('filtering clusters..')
+    # filtered_ids = [cid for cid,counts in real_counts.items()
+    #                 if counts['total'] >= 2]
+    # print(len(real_counts))
+    # print(len(filtered_ids))
+    # filtered_clusters = {i:nested_clusters[i] for i in filtered_ids}
+    # filtered_counts = {i:real_counts[i] for i in filtered_ids}
 
-    # compute null-based scores for relevant clusters
-    print('scoring relevant clusters:')
-    means,stds,pvals = score_clusters(filtered_clusters,filtered_counts,
-                   sample_ids, nested_tags,mappings,n=1000,processes=5)
+    # # compute null-based scores for relevant clusters
+    # print('scoring relevant clusters:')
+    # means,stds,pvals = score_clusters(filtered_clusters,filtered_counts,
+    #                sample_ids, nested_tags,mappings,n=1000,processes=5)
 
-    means = pd.DataFrame.from_dict(means,orient='index')
-    stds = pd.DataFrame.from_dict(stds,orient='index')
-    pvals = pd.DataFrame.from_dict(pvals,orient='index')
+    # means = pd.DataFrame.from_dict(means,orient='index')
+    # stds = pd.DataFrame.from_dict(stds,orient='index')
+    # pvals = pd.DataFrame.from_dict(pvals,orient='index')
 
-    print(means.shape)
-    print(stds.shape)
-    print(pvals.shape)
+    # print(means.shape)
+    # print(stds.shape)
+    # print(pvals.shape)
 
-    means.to_csv('/home/joerivs/Downloads/test_cluster_means.tsv',sep='\t')
-    stds.to_csv('/home/joerivs/Downloads/test_cluster_stds.tsv',sep='\t')
-    pvals.to_csv('/home/joerivs/Downloads/test_cluster_pvals.tsv',sep='\t')
+    # means.to_csv('/home/joerivs/Downloads/test_cluster_means.tsv',sep='\t')
+    # stds.to_csv('/home/joerivs/Downloads/test_cluster_stds.tsv',sep='\t')
+    # pvals.to_csv('/home/joerivs/Downloads/test_cluster_pvals.tsv',sep='\t')
 
 
     # print(as_df.shape)
     # print(as_df.head())
 
-    # c0_matches = count_comp_matches(
-    #     nested_clusters[10],
+    # real_matches,poss_matches = count_comp_matches(
+    #     nested_clusters[0],
     #     mappings,
     #     nested_tags)
 
+    # real_summed = sum_counts(real_matches,nested_tags)
+    # poss_summed = sum_counts(poss_matches,nested_tags)
+
+    # as_frac_of_poss(real_summed,poss_summed)
 
     # real_counts = sum_counts(c0_matches,nested_tags)
 
