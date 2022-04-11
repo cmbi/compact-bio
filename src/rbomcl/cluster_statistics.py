@@ -157,7 +157,8 @@ def get_match_counts(nested_clusters,mappings,nested_tags,
     match_fractions = {}
     for cid,clust in nested_clusters.items():
         print(f'\rcounting matches for cluster: {cid}',end="")
-        real_matches,poss_matches = count_comp_matches(clust,mappings,nested_tags)
+        real_matches,poss_matches = count_comp_matches(
+            clust,mappings,nested_tags)
         real_summed = sum_counts(real_matches,nested_tags)
         match_counts[cid] = real_summed
         # as fraction of possible matches
@@ -165,7 +166,11 @@ def get_match_counts(nested_clusters,mappings,nested_tags,
             poss_summed = sum_counts(poss_matches,nested_tags)
             match_fractions[cid] = as_frac_of_poss(
                 real_summed,poss_summed)
-    if report_fractions:    
+    
+    match_counts = pd.DataFrame.from_dict(match_counts,orient='index')
+    if report_fractions:
+        match_fractions = pd.DataFrame.from_dict(
+            match_fractions,orient='index')
         return match_counts,match_fractions
     else:
         return match_counts
@@ -181,6 +186,7 @@ def as_frac_of_poss(real,poss):
         else:
             frac_of_poss[col] = count/poss[col]
     return frac_of_poss
+
 
 def sample_null(composition,sample_ids):
     """
@@ -269,23 +275,12 @@ def score_clusters(nested_clusters,real_counts,sample_ids,nested_tags,
 
     return cluster_means,cluster_stds,cluster_pvals
 
-    for cid,clust in nested_clusters.items():
-        print(f'\rscoring cluster: {cid}',end="")
-        means,stds,pvals = score_cluster(clust,real_counts[cid],sample_ids,
-                                         nested_tags,mappings,n=n)
-        cluster_means[cid] = means
-        cluster_stds[cid] = stds
-        cluster_pvals[cid] = pvals
-    print('\n')
-    return cluster_means,cluster_stds,cluster_pvals
-
 if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAMPLES IN
 
     import process_data as prd
     from run_compact import parse_settings, parse_mappings,get_nested_tags,parse_profiles,get_int_matrices
-    import pandas as pd
 
-    mcl_res_fn = '/home/joeri/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
+    mcl_res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
     settings_fn = '12_complexome_input.py'
     clusts = prd.parse_MCL_result(mcl_res_fn)
     sample_data,mapping_data = parse_settings(settings_fn)
@@ -315,12 +310,8 @@ if __name__ == "__main__":    # THINK ABOUT WHAT STRUCTURE I SHOULD HAVE THE SAM
     match_counts,match_fractions = get_match_counts(
         nested_clusters,mappings,nested_tags)
 
-    match_counts_df = pd.DataFrame.from_dict(
-        match_counts,orient='index')
-    match_fractions_df = pd.DataFrame.from_dict(
-        match_fractions,orient='index')
-    match_counts_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_counts.tsv',sep='\t')
-    match_fractions_df.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_fractions.tsv',sep='\t')
+    match_counts.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_counts.tsv',sep='\t')
+    match_fractions.to_csv('~/Documents/Apicomplexa_project/results/c12_run_Apr1_results/match_fractions.tsv',sep='\t')
 
     # as_df = pd.DataFrame.from_dict(res,orient='index')
 
