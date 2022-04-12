@@ -1,5 +1,4 @@
 # base library imports
-from concurrent.futures import process
 from itertools import combinations, chain, product
 import subprocess as sp
 from warnings import warn
@@ -9,17 +8,15 @@ import numpy as np
 import pandas as pd
 
 # local library imports
-import process_data as prd
-from utils import get_stripped_mapping,mcl_available
-from cluster_statistics import get_match_counts,split_clusters
+from . import utils as ut
+from . import process_data as prd
 
 # check if mcl is available, warn if not
-if not mcl_available():
+if not ut.mcl_available():
     warn("Warning. MCL not available, cannot perform"
-          " clustering if MCL executable is not in PATH")
+         " clustering if MCL executable is not in PATH")
 
 # normalise correlation and RBO scores
-
 def normalise_scores(scores_list):
     """
     normalise top hit scores correcting for average per comparison
@@ -108,6 +105,7 @@ def create_combined_network(between_scores, network_fn,
 
 # perform MCL clustering using network with normalised edge weights
 
+
 def run_MCL(input_fn, output_fn, inflation=2, processes=1):
     """
     runs mcl command line tool as subprocess
@@ -137,6 +135,8 @@ def run_MCL(input_fn, output_fn, inflation=2, processes=1):
     print('MCL process ended\n')
 
 # process the MCL results
+
+
 def separate_subclusters(clusters, nested_tags):
     """
     separates clusters into subclusters per collection, pooling samples
@@ -166,6 +166,7 @@ def separate_subclusters(clusters, nested_tags):
 
     return clusters_split
 
+
 def get_clust_member_occurence(clust, tags, as_fraction=True):
     """
     gets all collection members and occurence counts in given cluster
@@ -193,8 +194,9 @@ def get_clust_member_occurence(clust, tags, as_fraction=True):
         return dict(zip(unique, fractions))
     return dict(zip(unique, counts))
 
+
 def get_clust_info(clusters, clusters_split,
-                     report_threshold=0.5):
+                   report_threshold=0.5):
     """
     creates table with cluster information
 
@@ -225,10 +227,13 @@ def get_clust_info(clusters, clusters_split,
                  subclusters.items()}
         clust_info[f'{tag}_size'] = clust_info.index.map(sizes)
 
+    # fill nas with zero
+    clust_info.fillna(0, inplace=True)
+
     # add overall cluster sizes
     size_cols = [f'{tag}_size' for tag in clusters_split.keys()]
     clust_info['total_size'] = clust_info.loc[:, size_cols].sum(axis=1)
-    
+
     # count number of collections represented
     presence = (clust_info.loc[:, size_cols] != 0)
     clust_info['n_represented'] = presence.sum(axis=1)
@@ -244,7 +249,7 @@ def get_clust_info(clusters, clusters_split,
         clust_info[colname] = clust_info.index.map(threshold_sizes)
 
     # fill nas with zero
-    clust_info.fillna(0,inplace=True)
+    clust_info.fillna(0, inplace=True)
 
     # add overall cluster sizes of proteins that make the threshold
     thresh_size_cols = [f'{tag}_over_{report_threshold}_size'
@@ -253,10 +258,177 @@ def get_clust_info(clusters, clusters_split,
     clust_info[f'total_over_{report_threshold}_size'] = over_thresh_sizes
 
     # count number of collections represented over threshold
-    thresh_presence = (clust_info.loc[:,thresh_size_cols] != 0)
+    thresh_presence = (clust_info.loc[:, thresh_size_cols] != 0)
     clust_info['robust_represented'] = thresh_presence.sum(axis=1)
 
     return clust_info
+
+
+def invert_nested_tags(nested_tags):
+    """creates sample to collection mapping"""
+    inverted = {}
+    for ctag, mtags in nested_tags.items():
+        for mtag in mtags:
+            inverted[mtag] = ctag
+    return inverted
+
+
+def fetch_tag_members(members, tag):
+    """
+    for list of tagged members,get stripped ids with this tag
+
+    Args:
+        members (_type_): _description_
+        tag (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    tag_members = [mid[len(tag) + 1:] for mid in members
+                   if tag in mid]
+    return tag_members
+
+
+def split_clusters(clusts, sample_tags):
+    """
+    split clusters into members per sample
+
+    Args:
+        clusts (_type_): _description_
+        sample_tags (_type_): _description_
+
+    Returns:
+        dict of dicts: _description_
+    """
+    nested_clusters = {}
+    for cid, members in clusts.items():
+        cur_clust = {}
+        for tag in sample_tags:
+            sample_members = fetch_tag_members(members, tag)
+            if sample_members:
+                cur_clust[tag] = sample_members
+        nested_clusters[cid] = cur_clust
+    return nested_clusters
+
+
+def get_sample_tags(nested_tags):
+    sample_tags = []
+    for tags in nested_tags.values():
+        sample_tags += tags
+    return sample_tags
+
+
+def count_comp_matches(nested_cluster, mappings, nested_tags,
+                       get_poss_matches=True):
+    """
+    count found matches per comparison for given cluster
+    """
+    sample_tags = get_sample_tags(nested_tags)
+    comps = list(combinations(sample_tags, r=2))
+
+    real_counts = {}
+    poss_counts = {}
+    for left, right in comps:
+        # check if comp is present
+        if not (left in nested_cluster.keys()
+                and right in nested_cluster.keys()):
+            continue
+
+        left_members = prd.remove_appendices(nested_cluster[left])
+        right_members = prd.remove_appendices(nested_cluster[right])
+        comp_mapping = ut.get_comp_mapping(left, right, nested_tags, mappings)
+        matches = ut.get_comparison_matches(
+            left_members, right_members, mapping=comp_mapping
+        )
+        # get possible number of matches
+        if get_poss_matches:
+            n_poss = count_possible_matches(
+                len(left_members), len(right_members))
+            real_counts[(left, right)] = len(matches)
+            poss_counts[(left, right)] = n_poss
+
+    if get_poss_matches:
+        return real_counts, poss_counts
+    else:
+        return real_counts
+
+
+def count_possible_matches(n_left, n_right):
+    """
+    count possible matches for given comparison
+
+    which is length of shortest list
+    """
+    if n_left < n_right:
+        return n_left
+    else:
+        return n_right
+
+
+def sum_counts(comp_counts, nested_tags):
+    """
+    sum per collection and total count
+
+    in a way that loops over the total set of comparisons only once
+    """
+    summed_counts = {col: 0 for col in nested_tags.keys()}
+    summed_counts['total'] = 0
+    sample_to_col = invert_nested_tags(nested_tags)
+    for (left, right), count in comp_counts.items():
+        left_col = sample_to_col[left]
+        right_col = sample_to_col[right]
+
+        # check if comparison is within collection
+        if left_col == right_col:
+            # if so add count to collection total
+            summed_counts[left_col] += count
+
+        # add count to total count
+        summed_counts['total'] += count
+
+    return summed_counts
+
+
+def get_match_counts(nested_clusters, mappings, nested_tags,
+                     report_fractions=True):
+    """
+    count matches for every cluster
+    """
+    match_counts = {}
+    match_fractions = {}
+    for cid, clust in nested_clusters.items():
+        print(f'\rcounting matches for cluster: {cid}', end="")
+        real_matches, poss_matches = count_comp_matches(
+            clust, mappings, nested_tags)
+        real_summed = sum_counts(real_matches, nested_tags)
+        match_counts[cid] = real_summed
+        # as fraction of possible matches
+        if report_fractions:
+            poss_summed = sum_counts(poss_matches, nested_tags)
+            match_fractions[cid] = as_frac_of_poss(
+                real_summed, poss_summed)
+    print()
+    match_counts = pd.DataFrame.from_dict(match_counts, orient='index')
+    if report_fractions:
+        match_fractions = pd.DataFrame.from_dict(
+            match_fractions, orient='index')
+        return match_counts, match_fractions
+    else:
+        return match_counts
+
+
+def as_frac_of_poss(real, poss):
+    """
+    convert counts to fraction of possible counts
+    """
+    frac_of_poss = {}
+    for col, count in real.items():
+        if count == 0:
+            frac_of_poss[col] = 0
+        else:
+            frac_of_poss[col] = count / poss[col]
+    return frac_of_poss
+
 
 def fetch_subcluster_matches(subclusters, mappings, comps,
                              report_threshold=None):
@@ -294,8 +466,8 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
         # get mapping from stripped id to full ids for subclusters
         l_subclust = subclusters[left]
         r_subclust = subclusters[right]
-        l_stripped_to_full = get_stripped_mapping(l_subclust)
-        r_stripped_to_full = get_stripped_mapping(r_subclust)
+        l_stripped_to_full = ut.get_stripped_mapping(l_subclust)
+        r_stripped_to_full = ut.get_stripped_mapping(r_subclust)
 
         if (left, right) in mappings.keys():
             mapping = mappings[(left, right)]
@@ -342,7 +514,8 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
 
     return comp_matches
 
-def get_node_edge_tables(clusts,clusts_split,network):
+
+def get_node_edge_tables(clusts, clusts_split, network):
     """
     generate node and edge tables for clustered nodes
 
@@ -366,7 +539,9 @@ def get_node_edge_tables(clusts,clusts_split,network):
 
     comps = list(combinations(clusts_split.keys(), r=2))
     for clust_id in clusts.keys():
-        print(f'processing cluster {clust_id+1} of {len(clusts)}..', end="\r")
+        print(
+            f'processing cluster network {clust_id+1} of {len(clusts)}..',
+            end="\r")
 
         # get cluster nodes as dataframe, add to nodes
         node_df = get_cluster_nodes(clust_id, clusts_split)
@@ -393,15 +568,15 @@ def get_node_edge_tables(clusts,clusts_split,network):
     nodes = pd.concat(nodes)
     return nodes, agg_network
 
-def select_clusters(clust_info,match_counts):
-    """"""
-    robust_present = set(clust_info[clust_info['robust_represented']!= 0].index.values)
-    nonzero_matches = set(match_counts[match_counts['total'] != 0].index.values)
+
+def select_clusters(clust_info, match_counts, min_match_count=2):
+    """select clusters with members over threshold and at least one match"""
+    robust_present = set(
+        clust_info[clust_info['robust_represented'] != 0].index.values)
+    nonzero_matches = set(
+        match_counts[match_counts['total'] >= min_match_count].index.values)
     selected = list(robust_present & nonzero_matches)
     return selected
-
-def filter_clusters(selected):
-    pass
 
 
 def process_annot_MCL_res(res_fn, nested_tags, network_fn,
@@ -411,8 +586,8 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
 
     Parses raw MCL cluster results. Separates clusters per collection,
     aggregating membership over samples within a collection. Generates
-    cluster info table, and produces node and edge tables for network
-    nodes and edges that are part of clusters for further analysis.
+    cluster info table, and optionally produces node and edge tables for
+    network nodes and edges that are part of clusters for further analysis.
 
     Args:
         res_fn (str): filepath of MCL output file
@@ -445,40 +620,54 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
     print('processing MCL results..')
     # parse clusters
     clusts = prd.parse_MCL_result(res_fn)
-    
+
     # split clusters per collection
     clusts_split = separate_subclusters(clusts,
                                         nested_tags)
 
     # get table with summary statistics of all clusters
     clust_info = get_clust_info(clusts, clusts_split,
-                                  report_threshold=report_threshold)
+                                report_threshold=report_threshold)
 
     # count matches between samples, total count and within collections
     sample_tags = []
     for tags in nested_tags.values():
         sample_tags += tags
-    per_sample_clusters = split_clusters(clusts,sample_tags) 
-    match_counts,match_fractions = get_match_counts(
-        per_sample_clusters,mappings,nested_tags)
+    per_sample_clusters = split_clusters(clusts, sample_tags)
+    match_counts, match_fractions = get_match_counts(
+        per_sample_clusters, mappings, nested_tags)
 
-    # filter clusters
-    selected = select_clusters(clust_info,match_counts)
-    print(len(selected))
+    # filter clusters, must have matches and robustly present members
+    selected = select_clusters(clust_info, match_counts)
 
-    return
+    clusts = {key: val for key, val in clusts.items() if key in selected}
+    new_clusts_split = {}
+    for col, subclusts in clusts_split.items():
+        new_subclusts = {key: val for key, val in subclusts.items()
+                         if key in selected}
+        new_clusts_split[col] = new_subclusts
+    clusts_split = new_clusts_split
+    clust_info = clust_info.loc[selected]
+    match_fractions = match_fractions.loc[selected]
 
-    # get cluster node and edge tables for network analysis/visualization 
+    # add match_fractions to clust_info
+    clust_info = clust_info.merge(
+        match_fractions,
+        left_index=True,
+        right_index=True)
+
+    # get cluster node and edge tables for network analysis/visualization
     network = pd.read_csv(network_fn, sep='\t', header=None)
-    nodes,edges = get_node_edge_tables(clusts,clusts_split,network)
+    nodes, edges = get_node_edge_tables(clusts, clusts_split, network)
 
     return {
         'clust_info': clust_info,
         'clusts': clusts,
         'clusts_split': clusts_split,
+        'nodes': nodes,
         'edges': edges,
-        'nodes': nodes
     }
+
 
 def add_edge_clust_ids(network, clusts):
     """
@@ -585,6 +774,7 @@ def create_node_frame(nodes, ctag):
     as_df['tag'] = ctag
     return as_df
 
+
 def get_cluster_nodes(clust_id, clusts_split):
     """
     for cluster with given clust_id, get node table
@@ -610,14 +800,14 @@ def get_cluster_nodes(clust_id, clusts_split):
 
 
 if __name__ == "__main__":
-    from run_compact import parse_settings, parse_mappings,get_nested_tags,parse_profiles,get_int_matrices
+    from run_compact import parse_settings, parse_mappings, get_nested_tags, parse_profiles, get_int_matrices
 
     mcl_res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
-    network_fn = '/home/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/combined_network.tsv'
-    
+    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/combined_network.tsv'
+
     settings_fn = '12_complexome_input.py'
     clusts = prd.parse_MCL_result(mcl_res_fn)
-    sample_data,mapping_data = parse_settings(settings_fn)
+    sample_data, mapping_data = parse_settings(settings_fn)
     mappings = parse_mappings(mapping_data)
 
     # decide later how to get these in actual code
@@ -626,10 +816,26 @@ if __name__ == "__main__":
     for tags in nested_tags.values():
         sample_tags += tags
 
-    process_annot_MCL_res(mcl_res_fn,nested_tags,network_fn,mappings)
+    mcl_res = process_annot_MCL_res(
+        mcl_res_fn, nested_tags, network_fn, mappings)
+
+    """
+    TAKEN FROM THE SAVE_RESULTS FUNCTION IN MAIN
+    """
+    out_folder = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/new_processed'
+    import os
+
+    # clust info
+    clust_info_outfn = os.path.join(out_folder, 'clust_info.tsv')
+    mcl_res['clust_info'].to_csv(clust_info_outfn, sep='\t')
+
+    # cluster member tables per collection
+    member_tables = prd.split_clustmember_tables(mcl_res['nodes'], mappings)
+    for name, table in member_tables.items():
+        table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')
+        table.to_csv(table_outfn, sep='\t')
 
     # clusts_split = separate_subclusters(clusts,nested_tags)
-
 
     # clust_info = get_clust_info(clusts,clusts_split)
 

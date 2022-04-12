@@ -462,7 +462,7 @@ def process_mcl_result(
 
     # optionally annotate the clusters
     if perf_cluster_annotation:
-        print('annotating clusteris using reference..')
+        print('annotating clusters using reference..')
 
         # get subclusters
         subclusters = mcl_res['clusts_split'][reference_tag]
@@ -603,7 +603,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
             network nodes part of one of the clusters
     """
     # check if mcl is available, error if not
-    if not ):
+    if not ut.mcl_available():
         msg = ("MCL not available, cannot perform analysis"
             " if MCL executable is not in PATH")
         raise ValueError(msg)
