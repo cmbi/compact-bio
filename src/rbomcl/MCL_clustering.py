@@ -515,7 +515,7 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
     return comp_matches
 
 
-def get_node_edge_tables(clusts, clusts_split, nested_tags, nested_tags, network):
+def get_node_edge_tables(clusts, clusts_split, nested_tags, network):
     """
     generate node and edge tables for clustered nodes
 
