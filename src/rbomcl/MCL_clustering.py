@@ -515,7 +515,7 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
     return comp_matches
 
 
-def get_node_edge_tables(clusts, clusts_split, nested_tags, network):
+def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
     """
     generate node and edge tables for clustered nodes
 
@@ -658,7 +658,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
 
     # get cluster node and edge tables for network analysis/visualization
     network = pd.read_csv(network_fn, sep='\t', header=None)
-    nodes, edges = get_node_edge_tables(clusts, clusts_split, nested_tags, network)
+    nodes, edges = get_node_edge_tables(clusts, clusts_split, mappings, nested_tags, network)
 
     return {
         'clust_info': clust_info,
