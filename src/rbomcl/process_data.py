@@ -79,7 +79,8 @@ def fetch_mapping(left_tag, right_tag, mappings):
 
 def invert_mapping(mapping_dict):
     """inverts given dict"""
-    return {val:key for key,val in mapping_dict.items()}
+    return {val: key for key, val in mapping_dict.items()}
+
 
 def split_prot_ids(df):
     """
@@ -189,6 +190,51 @@ def parse_top_hits(top_hit_fn):
         squeeze=True
     )
 
+# FUNCTIONALITY AROUND COMBINED NETWORK
+
+
+def parse_network(net_fn):
+    return pd.read_csv(net_fn, sep='\t', header=None)
+
+
+def write_network(net, out_fn):
+    net.to_csv(out_fn, sep='\t', index=False, header=False)
+
+
+def filter_network(network, comps):
+    """
+    filter provided comparisons from given network
+
+    Args:
+        network (pd df): network containing multiple comparisons
+        comps (list of tuples):
+            comparisons to include in the output network
+            comparison (tuple, (str,str)):
+                left and right tags of compared samples
+
+    Returns:
+        pd df: subnetwork containing only provided comparisons
+    """
+    comp_data = []
+    for left, right in comps:
+        is_comp = (network[0].str.startswith(left)
+                   & network[1].str.startswith(right))
+        # assuming comparison is either stored completely
+        # left --> right or completely right --> left
+        if is_comp.sum() == 0:
+            is_comp = (network[0].str.startswith(right)
+                       & network[1].str.startswith(left))
+
+        # if reverse also yields nothing, comparison not present!
+        if is_comp.sum() == 0:
+            msg = f'comparison ("{left}":"{right}") not present in input network'
+            raise ValueError(msg)
+
+        comp_data.append(network.loc[is_comp])
+
+    sub_net = pd.concat(comp_data)
+    return sub_net
+
 
 def parse_MCL_result(res_fn):
     """
@@ -208,6 +254,7 @@ def parse_MCL_result(res_fn):
             if len(ids) > 1:
                 clusters[i] = ids
     return clusters
+
 
 def annotate_df(to_annot, annot_fn):
     """
@@ -408,8 +455,30 @@ def parse_gmt(filename):
 
 if __name__ == "__main__":
 
+    # parse combined network
+    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/test_chunk_network.tsv'
+    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/combined_network.tsv'
+
+    net = parse_network(network_fn)
+    print(net.head())
+
+    # filter combined network
+
+    comps = [('CRS86', 'CRS50')]
+    subnet = filter_network(net, comps)
+
+    print(subnet.shape)
+    print(subnet.head())
+
+    # write combined network
+    write_network(
+        subnet,
+        '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/CRS86_CRS50_subnet.tsv')
+
+    # extract subnetwork
+
     # parse dataframe to annotate, for testing
-    to_annot_fn = '../results/top_03_percent_top_hit_clusters_PLASMO.tsv'
-    to_annot = pd.read_csv(to_annot_fn, sep='\t', index_col=0)
-    to_annot = to_annot[['average_rbo']]
-    annotate_df(to_annot, PLASMO_ANNOT_FN)
+    # to_annot_fn = '../results/top_03_percent_top_hit_clusters_PLASMO.tsv'
+    # to_annot = pd.read_csv(to_annot_fn, sep='\t', index_col=0)
+    # to_annot = to_annot[['average_rbo']]
+    # annotate_df(to_annot, PLASMO_ANNOT_FN)
