@@ -570,7 +570,7 @@ def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
 
 
 def select_clusters(clust_info, match_counts, min_match_count=2):
-    """select clusters with members over threshold and at least one match"""
+    """select clusters with members over threshold and at least two matches"""
     robust_present = set(
         clust_info[clust_info['robust_represented'] != 0].index.values)
     nonzero_matches = set(
@@ -580,7 +580,8 @@ def select_clusters(clust_info, match_counts, min_match_count=2):
 
 
 def process_annot_MCL_res(res_fn, nested_tags, network_fn,
-                          mappings, report_threshold=0.5):
+                          mappings, report_threshold=0.5,
+                          filter_clusters=True):
     """
     processes and annotates MCL results
 
@@ -603,6 +604,9 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
             proteins are counted as member if they are
             a member of the cluster in a fraction of the
             samples >= report_threshold.
+        filter_clusters (bool, optional): default True
+            whether to filter out clusters with less than 2 matches
+            or proteins over report_threshold
 
     Returns:
         dict: processed mcl clustering results, containing:
@@ -638,17 +642,18 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
         per_sample_clusters, mappings, nested_tags)
 
     # filter clusters, must have matches and robustly present members
-    selected = select_clusters(clust_info, match_counts)
+    if filter_clusters:
+        selected = select_clusters(clust_info, match_counts)
 
-    clusts = {key: val for key, val in clusts.items() if key in selected}
-    new_clusts_split = {}
-    for col, subclusts in clusts_split.items():
-        new_subclusts = {key: val for key, val in subclusts.items()
-                         if key in selected}
-        new_clusts_split[col] = new_subclusts
-    clusts_split = new_clusts_split
-    clust_info = clust_info.loc[selected]
-    match_fractions = match_fractions.loc[selected]
+        clusts = {key: val for key, val in clusts.items() if key in selected}
+        new_clusts_split = {}
+        for col, subclusts in clusts_split.items():
+            new_subclusts = {key: val for key, val in subclusts.items()
+                            if key in selected}
+            new_clusts_split[col] = new_subclusts
+        clusts_split = new_clusts_split
+        clust_info = clust_info.loc[selected]
+        match_fractions = match_fractions.loc[selected]
 
     # add match_fractions to clust_info
     clust_info = clust_info.merge(

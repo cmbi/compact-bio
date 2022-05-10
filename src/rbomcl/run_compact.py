@@ -65,6 +65,10 @@ def parse_arguments():
         help='fraction of samples threshold for reporting cluster membership'
     )
     parser.add_argument(
+        '--skip-filter-clusters',action="store_true",
+        help='if low-scoring clusters should not be filtered'
+    )
+    parser.add_argument(
         '--perf-cluster-annot',action="store_true",
         help="perform automatic annotation of clusters using reference groups"
     )
@@ -219,7 +223,7 @@ def run():
             include_within=args.include_within,wbratio=args.wbratio,
             mcl_inflation=args.mcl_inflation,output_location=args.output_loc,
             job_name=args.job_name,report_threshold=args.report_threshold,
-            save_rthits=args.save_rthits,
+            filter_clusters=not args.skip_filter_clusters,save_rthits=args.save_rthits,
             perf_cluster_annotation=args.perf_cluster_annot,
             reference_groups=ref_groups, reference_tag=args.ref_tag,
             annot_fraction_threshold=args.annot_ref_th,

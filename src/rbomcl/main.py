@@ -402,6 +402,7 @@ def mcl_clustering(within_top_hits, between_top_hits,
 def process_mcl_result(
         mcl_outfn, nested_tags, network_outfn, mappings,
         report_threshold=0.5,
+        filter_clusters=True,
         perf_cluster_annotation=False,
         reference_groups=None,
         reference_tag=None,
@@ -425,6 +426,9 @@ def process_mcl_result(
             multi-sample collections, proteins are counted as member if they are
             a member of the cluster in a fraction of the
             samples >= report_threshold. Defaults to 0.5.
+        filter_clusters (bool, optional): default True
+            whether to filter out clusters with less than 2 matches
+            or proteins over report_threshold
         perf_cluster_annotation (bool, optional): Defaults to False.
             whether to perform automatic annotation of clusters using ref
         reference_groups (dict, optional): Defaults to None.
@@ -458,7 +462,8 @@ def process_mcl_result(
     # process the mcl results
     mcl_res = mcl.process_annot_MCL_res(
         mcl_outfn, nested_tags, network_outfn, mappings,
-        report_threshold=report_threshold)
+        report_threshold=report_threshold,
+        filter_clusters=filter_clusters)
 
     # optionally annotate the clusters
     if perf_cluster_annotation:
@@ -518,6 +523,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
          output_location='.',
          job_name=None,
          report_threshold=0.5,
+         filter_clusters=True,
          save_rthits=False,
          perf_cluster_annotation=False,
          reference_groups=None,
@@ -571,6 +577,9 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
             sampled collections, proteins are counted as member if they are
             a member of the cluster in a fraction of the
             samples >= report_threshold. Defaults to 0.5.
+        filter_clusters (bool, optional): default True
+            whether to filter out clusters with less than 2 matches
+            or proteins over report_threshold    
         perf_cluster_annotation (bool, optional): Defaults to False.
             whether to perform automatic annotation of clusters using ref
         reference_groups (dict, optional): Defaults to None.
@@ -679,6 +688,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
     mcl_res = process_mcl_result(
         mcl_outfn, nested_tags, network_outfn,
         mappings, report_threshold=report_threshold,
+        filter_clusters=filter_clusters,
         perf_cluster_annotation=perf_cluster_annotation,
         reference_groups=reference_groups,
         reference_tag=reference_tag,
