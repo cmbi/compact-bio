@@ -112,13 +112,20 @@ def get_comp_mapping(left, right, nested_tags, mappings):
             right_tag = key
 
     # get (orthology) mapping if its provided
-    if (left_tag, right_tag) in mappings.keys():
-        mapping = mappings[(left_tag, right_tag)]
-    elif (right_tag, left_tag) in mappings.keys():
-        mapping = invert_mapping(mappings[(right_tag, left_tag)])
+    mapping = get_col_mapping(left_tag,right_tag,mappings)
+
+    return mapping
+
+def get_col_mapping(left,right,mappings):
+    """
+    grab mapping for comparison of 2 collections
+    """
+    if (left,right) in mappings.keys():
+        mapping = mappings[(left,right)]
+    elif (right,left) in mappings.keys():
+        mapping = invert_mapping(mappings[(right,left)])
     else:
         mapping = False
-
     return mapping
 
 def get_comparison_matches(left, right, mapping=None):
