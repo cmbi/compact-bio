@@ -10,6 +10,7 @@ import pandas as pd
 # local library imports
 from . import utils as ut
 from . import process_data as prd
+from .member_selection import select_members
 
 # check if mcl is available, warn if not
 if not ut.mcl_available():
@@ -665,10 +666,17 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
     network = pd.read_csv(network_fn, sep='\t', header=None)
     nodes, edges = get_node_edge_tables(clusts, clusts_split, mappings, nested_tags, network)
 
+    # get best guess members
+    best_guess = select_members(
+        clusts_split,mappings,
+        theshold=report_threshold
+    )
+
     return {
         'clust_info': clust_info,
         'clusts': clusts,
         'clusts_split': clusts_split,
+        'best_guess': best_guess,
         'nodes': nodes,
         'edges': edges,
     }

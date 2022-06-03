@@ -508,9 +508,19 @@ def save_results(mcl_res, out_folder, mappings):
     edges_outfn = os.path.join(out_folder, 'clust_edges.tsv')
     mcl_res['edges'].to_csv(edges_outfn, sep='\t')
 
-    # cluster member tables per collection
+    # get cluster member tables per collection
     member_tables = prd.split_clustmember_tables(mcl_res['nodes'], mappings)
-    for name, table in member_tables.items():
+    for name ,table in member_tables.items():
+        # add best guess selection to clustmember tables
+        best_guesses = mcl_res['best_guess'][name]
+        table['best_guess'] = False
+        for cid,members in best_guesses.items():
+            if not cid in table.index:
+                continue
+            selected = (table.index == cid) & (table['id'].isin(members))
+            table.loc[selected,'best_guess'] = True
+
+        # write table to file
         table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')
         table.to_csv(table_outfn, sep='\t')
 

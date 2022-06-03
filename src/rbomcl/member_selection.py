@@ -1,8 +1,27 @@
-from . import process_data as prd
-from .main import process_mcl_result
-from . import MCL_clustering as mcl
 from . import utils as ut
 
+def select_members(clusts_split,mappings,threshold=0.5):
+    """
+    Select best-guess complex members using matches and presence
+
+    Args:
+        clusts_split (_type_): _description_
+        mappings (_type_): _description_
+        threshold (float, optional): _description_. Defaults to 0.5.
+
+    Returns:
+        _type_: _description_
+    """
+    thresh_filtered = threshold_filter(
+        clusts_split,threshold=threshold)
+    match_filtered = match_filter(
+        clusts_split,thresh_filtered,mappings
+    )
+    selected_members = get_filter_union(
+        thresh_filtered,match_filtered
+    )
+
+    return selected_members
 
 def threshold_filter(clusts_split,threshold=0.5):
     """filter clusters based on frac_present threshold"""
