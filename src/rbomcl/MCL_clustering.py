@@ -669,7 +669,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
     # get best guess members
     best_guess = select_members(
         clusts_split,mappings,
-        theshold=report_threshold
+        threshold=report_threshold
     )
 
     return {
