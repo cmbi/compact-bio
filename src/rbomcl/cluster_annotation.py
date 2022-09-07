@@ -1,7 +1,7 @@
 import operator
 
 def annotate_clusters(clusters, reference, fraction_threshold=0.5,
-                      filter_mem_threshold=0.1):
+                      filter_mem_threshold=0.25):
     """
     provide annotation to clusters using reference complexes
 
@@ -27,7 +27,7 @@ def annotate_clusters(clusters, reference, fraction_threshold=0.5,
     """
 
     # filter cluster members based on fraction present
-    if filter_mem_threshold == None:
+    if filter_mem_threshold != None:
         clusters = filter_clust_members(
             clusters, threshold=filter_mem_threshold)
 
@@ -94,7 +94,7 @@ def fraction_present(reference_set, cluster_set):
     return fraction
 
 
-def filter_clust_members(clusters, threshold=0.2):
+def filter_clust_members(clusters, threshold=0.25):
     """
     Removes cluster members with a score below threshold
 

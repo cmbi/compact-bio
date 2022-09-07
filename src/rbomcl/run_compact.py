@@ -25,8 +25,8 @@ def parse_arguments():
         "-p", type=float,default=0.9,
         help="rank biased overlap p parameter, default=0.9")
     parser.add_argument(
-        "-m","--min-search-weight",type=float,default=0.999,
-        help='minimum search weight for rank biased overlap, default=0.999'
+        "-m","--min-search-weight",type=float,default=0.99,
+        help='minimum search weight for rank biased overlap, default=0.99'
         )
     parser.add_argument(
         '--th-criterium',choices=['percent','best'],default="percent",
@@ -62,7 +62,7 @@ def parse_arguments():
     )
     parser.add_argument(
         '--report-threshold',type=float,default=0.5,
-        help='fraction of samples threshold for reporting cluster membership'
+        help='fraction of samples threshold for reporting cluster membership. default=0.5'
     )
     parser.add_argument(
         '--skip-filter-clusters',action="store_true",
@@ -82,11 +82,11 @@ def parse_arguments():
     )
     parser.add_argument(
         '--annot-ref-th',type=float,default=0.5,
-        help='min fraction of reference group that must be present in cluster'
+        help='min fraction of reference group that must be present in cluster. default=0.5'
     )
     parser.add_argument(
-        '--annot-mem-th',type=float,default=0.1,
-        help='min fraction-present of clust members to be counted for annot-ref-th'
+        '--annot-mem-th',type=float,default=0.25,
+        help='min fraction-present of clust members to be counted for annot-ref-th. default=0.25'
     )
     parser.add_argument(
         '-t','--processes',type=int,default=1,

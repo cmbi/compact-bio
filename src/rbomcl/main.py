@@ -185,7 +185,7 @@ def process_params(nested_tags, job_name, output_location):
 
 
 def between_scoring(nested_tags, int_matrices, mappings,
-                    p=0.90, min_search_weight=0.999,
+                    p=0.90, min_search_weight=0.99,
                     th_criterium='percent', th_percent=1,
                     processes=1, chunksize=1000):
     """
@@ -207,7 +207,7 @@ def between_scoring(nested_tags, int_matrices, mappings,
         p (float, optional): Defaults to 0.90.
             "top heaviness" parameter of rbo scoring
             lower values for p result in increased top-heaviness
-        min_search_weight (float, optional): Defaults to 0.999.
+        min_search_weight (float, optional): Defaults to 0.99.
             determines search depth of ranked lists. will search
             to a depth that results computation of fraction of total
             possible score equal to min_search_weight
@@ -407,7 +407,7 @@ def process_mcl_result(
         reference_groups=None,
         reference_tag=None,
         annot_fraction_threshold=0.5,
-        annot_filter_mem_threshold=0.1):
+        annot_filter_mem_threshold=0.25):
     """
     processes and annotates raw mcl results for interpretation
 
@@ -441,7 +441,7 @@ def process_mcl_result(
         annot_fraction_threshold (float, optional): Defaults to 0.5.
             minimum fraction of reference that should be present in
             the cluster to get as assignment
-        annot_filter_mem_threshold (float, optional): Defaults to 0.1.
+        annot_filter_mem_threshold (float, optional): Defaults to 0.25.
             cluster members scoring below threshold will be ignored
             in determining overlap of cluster with reference.
             if value is  None no filtering is applied
@@ -525,7 +525,7 @@ def save_results(mcl_res, out_folder, mappings):
         table.to_csv(table_outfn, sep='\t')
 
 ### Main function to perform complete analysis in 1 go ###
-def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
+def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
          th_criterium='percent', th_percent=1,
          include_within=True,
          wbratio=1,
@@ -539,7 +539,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
          reference_groups=None,
          reference_tag=None,
          annot_fraction_threshold=0.5,
-         annot_filter_mem_threshold=0.1,
+         annot_filter_mem_threshold=0.25,
          processes=1, chunksize=1000):
     """
     complete rbo and clustering analysis from interaction matrices
@@ -557,7 +557,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
         p (float, optional): Defaults to 0.90.
             "top heaviness" parameter of rbo scoring
             lower values for p result in increased top-heaviness
-        min_search_weight (float, optional): Defaults to 0.999.
+        min_search_weight (float, optional): Defaults to 0.99.
             determines search depth of ranked lists. will search
             to a depth that results computation of fraction of total
             possible score equal to min_search_weight
@@ -602,7 +602,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.999,
         annot_fraction_threshold (float, optional): Defaults to 0.5.
             minimum fraction of reference that should be present in
             the cluster to get as assignment
-        annot_filter_mem_threshold (float, optional): Defaults to 0.1.
+        annot_filter_mem_threshold (float, optional): Defaults to 0.25.
             cluster members scoring below threshold will be ignored
             in determining overlap of cluster with reference.
             if value is  None no filtering is applied
