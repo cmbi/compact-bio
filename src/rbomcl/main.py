@@ -513,12 +513,12 @@ def save_results(mcl_res, out_folder, mappings):
     for name ,table in member_tables.items():
         # add best guess selection to clustmember tables
         best_guesses = mcl_res['best_guess'][name]
-        table['best_guess'] = False
+        table['best_guess_selection'] = False
         for cid,members in best_guesses.items():
             if not cid in table.index:
                 continue
             selected = (table.index == cid) & (table['id'].isin(members))
-            table.loc[selected,'best_guess'] = True
+            table.loc[selected,'best_guess_selection'] = True
 
         # write table to file
         table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')

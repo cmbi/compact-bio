@@ -221,6 +221,7 @@ def get_clust_info(clusters, clusters_split,
     """
     # initialize df
     clust_info = pd.DataFrame(index=clusters.keys())
+    clust_info.index.name = 'clust_id'
 
     # add size of subclusters
     for tag, subclusters in clusters_split.items():
@@ -408,11 +409,14 @@ def get_match_counts(nested_clusters, mappings, nested_tags,
             poss_summed = sum_counts(poss_matches, nested_tags)
             match_fractions[cid] = as_frac_of_poss(
                 real_summed, poss_summed)
-    print()
+
     match_counts = pd.DataFrame.from_dict(match_counts, orient='index')
+
     if report_fractions:
         match_fractions = pd.DataFrame.from_dict(
             match_fractions, orient='index')
+        colnames = [f'{tag}_match_fraction' for tag in match_fractions.columns]
+        match_fractions.columns = colnames
         return match_counts, match_fractions
     else:
         return match_counts
@@ -777,10 +781,10 @@ def create_node_frame(nodes, ctag):
 
     Returns:
         pd df: dataframe with nodes of current cluster
-            columns: id, fraction_present, tag
+            columns: id, fraction_clustered, tag
     """
     as_df = pd.DataFrame(pd.Series(nodes)).reset_index()
-    as_df.columns = ['id', 'fraction_present']
+    as_df.columns = ['id', 'fraction_clustered']
     tagged_id = as_df['id'].apply(lambda x: f'{ctag}_{x}')
     as_df.index = tagged_id
     as_df.index.name = 'tagged_id'
@@ -799,7 +803,7 @@ def get_cluster_nodes(clust_id, clusts_split):
 
     Returns:
         pd df: node table
-            columns: id,fraction_present,tag,clust_id
+            columns: id,fraction_clustered,tag,clust_id
     """
     cluster_nodes = []
     for key, val in clusts_split.items():
