@@ -511,14 +511,24 @@ def save_results(mcl_res, out_folder, mappings):
     # get cluster member tables per collection
     member_tables = prd.split_clustmember_tables(mcl_res['nodes'], mappings)
     for name ,table in member_tables.items():
-        # add best guess selection to clustmember tables
         best_guesses = mcl_res['best_guess'][name]
+        matches_over_threshold = mcl_res['match_over_threshold'][name]
         table['best_guess_selection'] = False
+        table['match_over_threshold'] = False
+
+        # add best guess selection to clustmember tables
         for cid,members in best_guesses.items():
             if not cid in table.index:
                 continue
             selected = (table.index == cid) & (table['id'].isin(members))
             table.loc[selected,'best_guess_selection'] = True
+
+        # add matches over threshold to clustmember tables
+        for cid,members in matches_over_threshold.items():
+            if not cid in table.index:
+                continue
+            selected = (table.index == cid) & (table['id'].isin(members))
+            table.loc[selected,'match_over_threshold'] = True
 
         # write table to file
         table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')

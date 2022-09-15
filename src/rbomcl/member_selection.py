@@ -9,8 +9,9 @@ def select_members(clusts_split,mappings,threshold=0.5):
         mappings (_type_): _description_
         threshold (float, optional): _description_. Defaults to 0.5.
 
-    Returns:
-        _type_: _description_
+    Returns: selected_members, match_filtered
+        both are dict of dicts: contains dict of subclusters for each collection
+            subclusters: list of members that passed filtering
     """
     thresh_filtered = threshold_filter(
         clusts_split,threshold=threshold)
@@ -21,7 +22,7 @@ def select_members(clusts_split,mappings,threshold=0.5):
         thresh_filtered,match_filtered
     )
 
-    return selected_members
+    return selected_members,match_filtered
 
 def threshold_filter(clusts_split,threshold=0.5):
     """filter clusters based on frac_present threshold"""

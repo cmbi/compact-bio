@@ -621,6 +621,13 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
                 clusters with all members together
             'clusts_split': dict
                 cluster members, split per collection, samples aggregated
+            'best_guess': dict of dicts
+                contains dict of subclusters for each collection
+                subclusters: list of members that pass best guess selection
+            'match_over_threshold': dict of dicts
+                contains dict of subclusters for each collection
+                subclusters: list of members that have match in another
+                collection that is over fraction clustered threshold
             'edges': dataframe
                 network edges part of one of the clusters
             'nodes': dataframe
@@ -670,8 +677,8 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
     network = pd.read_csv(network_fn, sep='\t', header=None)
     nodes, edges = get_node_edge_tables(clusts, clusts_split, mappings, nested_tags, network)
 
-    # get best guess members
-    best_guess = select_members(
+    # get best guess members, and those that have an orth passing threshold
+    best_guess,match_over_threshold = select_members(
         clusts_split,mappings,
         threshold=report_threshold
     )
@@ -681,6 +688,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
         'clusts': clusts,
         'clusts_split': clusts_split,
         'best_guess': best_guess,
+        'match_over_threshold':match_over_threshold,
         'nodes': nodes,
         'edges': edges,
     }
