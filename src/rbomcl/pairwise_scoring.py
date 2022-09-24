@@ -26,9 +26,8 @@ def rename_indices(left, right, mapping):
 
     Args:
         left|right (list-like): indexes of compared samples
-        mapping (dict or None, optional): Defaults to None.
-            dict with id mapping from left to right
-            if None ids are directly compared
+        mapping (dict):
+            id mapping from left to right
 
     Returns:
         tuple (list,list): renamed left and right indexes
