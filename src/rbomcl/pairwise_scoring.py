@@ -376,6 +376,9 @@ def det_search_depth(p, min_weight, shortest_list_len,
     Returns:
         int: the selected search depth
     """
+    # cannot compute weight if p =1, but will usually need entire list anyway
+    if p == 1.0:
+        return shortest_list_len
     min_achieved = False
     cur_rank = 1
     while min_achieved == False:
