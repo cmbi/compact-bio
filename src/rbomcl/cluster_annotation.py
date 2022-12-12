@@ -113,45 +113,4 @@ def filter_clust_members(clusters, threshold=0.25):
 
 
 if __name__ == "__main__":
-
-    # testcase for development
-    import MCL_clustering as mcl
-
-    # get example split clusters
-    nested_tags = {
-        'HUM': [
-            'CRS86',
-            'CRS50',
-            'CRS48',
-            'CRS25',
-            'CRS24',
-            'CRS23',
-            'CRS22',
-            'CRS17'],
-        'PF3_GAM': ['GAM1', 'GAM2', 'GAM3', 'GAM4'],
-        'PF3_AS': ['AS1', 'AS2', 'AS3', 'AS4'],
-        'PF3_SCH': ['CRS70', 'CRS71', 'CRS72', 'CRS73', 'CRS74', 'CRS75'],
-        'BER_SCH': ['CRS58', 'CRS59', 'CRS60', 'CRS61', 'CRS62', 'CRS63'],
-        'KNO_SCH': ['CRS64', 'CRS65', 'CRS66', 'CRS67', 'CRS68', 'CRS69'],
-        'TOX': ['TOX'],
-        'AT_LF': ['CRS100', 'CRS101', 'CRS102'],
-        'AT_SD': ['CRS103', 'CRS104', 'CRS105'],
-        'ANOST': ['AN_DDM', 'AN_DIGI']
-    }
-    res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/tri_anost_arab_nowithin_26jan_results/mcl_result.tsv'
-
-    clusters = mcl.parse_MCL_result(res_fn)
-    split_pooled = mcl.split_clusters_with_pooling(clusters, nested_tags)
-    hum_clusters = split_pooled['HUM']
-
-    # get reference complexes
-    ref_fn = '/home/joerivs/data/reference_complexes/corum_updated/CORUM_updated_genesets_no_duplicates.gmt'
-
-    reference = parse_gmt(ref_fn)
-
-    # assign reference sets to clusters
-    assignments = annotate_clusters(hum_clusters, reference)
-
-    print(len(assignments))
-    for clust_id, result in assignments.items():
-        print(f"{clust_id}:\t{result}")
+    pass
