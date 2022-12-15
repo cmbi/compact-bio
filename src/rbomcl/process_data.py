@@ -30,8 +30,15 @@ def parse_profile(tsv_fn):
     df.iloc[:, 0] = df.iloc[:, 0].astype(str)
     df.set_index(df.columns[0], inplace=True)
     df.index.name = 'prot_ids'
+    if df.empty:
+        msg = f'parsed profile contains no values: {tsv_fn}'
+        raise ValueError(msg)
+    try:
+        df = df.astype(float)
+    except:
+        msg = f'profile contains non-numeric values: {tsv_fn}'
+        raise ValueError(msg)
     return df
-
 
 def parse_mapping(tsv_fn):
     """
