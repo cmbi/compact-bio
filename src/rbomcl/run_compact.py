@@ -109,16 +109,25 @@ def parse_arguments():
     return args
 
 def parse_settings(settings_fn):
-    settings_name = os.path.basename(settings_fn).split('.')[0]
-    spec = spec_from_file_location(settings_name,settings_fn)
-    settings = module_from_spec(spec)
-    spec.loader.exec_module(settings)
-    
-    sample_data = settings.sample_data
+    sample_data = {}
+    mapping_data = {}
+    with open(settings_fn) as f_obj:
+        for line in f_obj:
+            splitline = line.strip().split('\t')
+            if len(splitline) != 4:
+                msg = f'line does not contain 4 tab separated values: {line}'
+                raise ValueError(msg)
+            ftype,tag1,tag2,fname = line.strip().split('\t')
+            if ftype == 'INT':
+                if tag1 not in sample_data.keys():
+                    sample_data[tag1] = {}
+                sample_data[tag1][tag2] = fname
+            elif ftype == 'MAP':
+                mapping_data[(tag1,tag2)] = fname
+            else:
+                msg = f'unrecognized file type identifier: {ftype}'
 
-    mapping_data = settings.mapping_data
-
-    return sample_data,mapping_data
+    return (sample_data,mapping_data)
 
 def parse_profiles(fn_dict):
     """
