@@ -543,9 +543,9 @@ def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
     nodes = []
 
     comps = list(combinations(clusts_split.keys(), r=2))
-    for clust_id in clusts.keys():
+    for i, clust_id in enumerate(clusts.keys()):
         print(
-            f'processing cluster network {clust_id+1} of {len(clusts)}..',
+            f'processing cluster network {i+1} of {len(clusts)}..',
             end="\r")
 
         # get cluster nodes as dataframe, add to nodes

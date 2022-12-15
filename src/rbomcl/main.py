@@ -250,7 +250,7 @@ def between_scoring(nested_tags, int_matrices, mappings,
     between_top_hits = {}
     for i, (left, right) in enumerate(comps):
         print('\rcomputing scores for comparison '
-              f'{i+1} of {len(comps)+1}: {left}:{right}..', end="")
+              f'{i+1} of {len(comps)}: {left}:{right}..', end="")
         left_scores = int_matrices[left]
         right_scores = int_matrices[right]
 
