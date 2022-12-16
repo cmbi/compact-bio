@@ -5,9 +5,9 @@ import sys
 from importlib.util import spec_from_file_location,module_from_spec
 
 # local imports
-from rbomcl.main import main
-from rbomcl import process_data as prd
-from rbomcl import utils
+from compact.main import main
+from compact import process_data as prd
+from compact import utils
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
