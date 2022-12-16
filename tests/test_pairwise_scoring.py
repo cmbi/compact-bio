@@ -1,4 +1,4 @@
-from rbomcl import pairwise_scoring as ps
+from compact import pairwise_scoring as ps
 
 
 def test_rename_indices():
@@ -10,4 +10,4 @@ def test_rename_indices():
         ['a|b','c','d']
         )
     assert ps.rename_indices(
-        left,right,mapping) == expected 
+        left,right,mapping) == expected
