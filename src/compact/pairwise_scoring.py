@@ -9,11 +9,27 @@ import multiprocessing as mp
 # third party library imports
 import pandas as pd
 import numpy as np
-from rbo import RankingSimilarity
+
 
 # local library imports
 from . import process_data as prd
 from .utils import get_comparison_matches
+
+# import available rbo implementation
+try:
+    from fastrbo import rank_biased_overlap
+    def compute_rbo(search_depth,p,lranks,rranks):
+        return rank_biased_overlap(
+            search_depth,p,lranks,rranks)
+
+except:
+    print('fastrbo package not installed. using slower rbo package')
+    print('install fastrbo to reduce computation time: https://github.com/joerivstrien/fastrbo')
+    from rbo import RankingSimilarity
+
+    def compute_rbo(search_depth,p,lranks,rranks):    
+        rbo_ranking = RankingSimilarity(lranks, rranks)
+        return rbo_ranking.rbo(p=p)
 
 def rename_indices(left, right, mapping):
     """
@@ -186,8 +202,7 @@ def score_comparison(comparison, p):
             structure: ((left_id,right_id),rbo_score)
     """
     (lprot, lranks), (rprot, rranks) = comparison
-    rbo_ranking = RankingSimilarity(lranks, rranks)
-    rbo = rbo_ranking.rbo(p=p)
+    rbo = compute_rbo(len(lranks),p,lranks,rranks)
     return ((lprot, rprot), rbo)
 
 
