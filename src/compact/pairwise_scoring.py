@@ -10,10 +10,9 @@ import multiprocessing as mp
 import pandas as pd
 import numpy as np
 
-
 # local library imports
 from . import process_data as prd
-from .utils import get_comparison_matches
+from .utils import get_comparison_matches,eprint
 
 # import available rbo implementation
 try:

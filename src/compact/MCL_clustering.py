@@ -11,7 +11,7 @@ import pandas as pd
 from . import utils as ut
 from . import process_data as prd
 from .member_selection import select_members
-from utils import eprint
+from .utils import eprint
 
 # check if mcl is available, warn if not
 if not ut.mcl_available():
