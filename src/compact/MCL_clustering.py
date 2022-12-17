@@ -11,6 +11,7 @@ import pandas as pd
 from . import utils as ut
 from . import process_data as prd
 from .member_selection import select_members
+from utils import eprint
 
 # check if mcl is available, warn if not
 if not ut.mcl_available():
@@ -86,7 +87,7 @@ def create_combined_network(between_scores, network_fn,
             only used when include_within=True
     """
     # normalise the scores
-    print('normalising comparison scores..')
+    eprint('normalising comparison scores..')
     if include_within:
         norm_within, norm_between = normalise_combined_scores(
             within_scores, between_scores,
@@ -102,7 +103,7 @@ def create_combined_network(between_scores, network_fn,
     # write total network to file (as abc file)
     total_network.to_csv(network_fn, sep='\t', header=False)
 
-    print(f'combined network written to file: {network_fn}')
+    eprint(f'combined network written to file: {network_fn}')
 
 # perform MCL clustering using network with normalised edge weights
 
@@ -117,9 +118,9 @@ def run_MCL(input_fn, output_fn, inflation=2, processes=1):
         inflation (int, optional): mcl inflation param. Defaults to 2.
         processes (int, optional): number of processes/threads. Defaults to 1.
     """
-    print('running MCL command line tool..')
-    print(f'inflation parameter: {inflation}')
-    print(f'input network file: {input_fn}')
+    eprint('running MCL command line tool..')
+    eprint(f'inflation parameter: {inflation}')
+    eprint(f'input network file: {input_fn}')
     cmd = [
         'mcl',
         f'{input_fn}',
@@ -133,7 +134,7 @@ def run_MCL(input_fn, output_fn, inflation=2, processes=1):
     with sp.Popen(cmd, stdout=sp.PIPE, bufsize=1, universal_newlines=True) as p:
         for b in p.stdout:
             print(b, end='')
-    print('MCL process ended\n')
+    eprint('MCL process ended\n')
 
 # process the MCL results
 
@@ -399,7 +400,7 @@ def get_match_counts(nested_clusters, mappings, nested_tags,
     match_counts = {}
     match_fractions = {}
     for cid, clust in nested_clusters.items():
-        print(f'\rcounting matches for cluster: {cid}', end="")
+        eprint(f'\rcounting matches for cluster: {cid}', end="")
         real_matches, poss_matches = count_comp_matches(
             clust, mappings, nested_tags)
         real_summed = sum_counts(real_matches, nested_tags)
@@ -530,11 +531,11 @@ def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
         network (_type_): _description_
     """
     # add cluster ids to edges, drop out of cluster edges
-    print('adding clust ids to edges..')
+    eprint('adding clust ids to edges..')
     network = add_edge_clust_ids(network, clusts)
 
     # aggregate edges over samples
-    print('aggregating edges over samples..')
+    eprint('aggregating edges over samples..')
     agg_network = aggregate_clust_edges(network, nested_tags)
 
     # add edge type column
@@ -544,7 +545,7 @@ def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
 
     comps = list(combinations(clusts_split.keys(), r=2))
     for i, clust_id in enumerate(clusts.keys()):
-        print(
+        eprint(
             f'processing cluster network {i+1} of {len(clusts)}..',
             end="\r")
 
@@ -633,7 +634,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
             'nodes': dataframe
                 network nodes part of one of the clusters
     """
-    print('processing MCL results..')
+    eprint('processing MCL results..')
     # parse clusters
     clusts = prd.parse_MCL_result(res_fn)
 

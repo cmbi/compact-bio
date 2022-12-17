@@ -1,8 +1,10 @@
+import sys
+
 try:
     import requests
 except BaseException:
     msg = "cannot import requests package, download_sample_abuns function not available"
-    print(msg)
+    eprint(msg)
 
 from shutil import which
 
@@ -193,3 +195,6 @@ def correlate_samples(samples, method="pearson"):
         int_matrices[name] = correlated
 
     return int_matrices
+
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)

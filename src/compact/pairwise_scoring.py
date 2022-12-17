@@ -23,8 +23,8 @@ try:
             search_depth,p,lranks,rranks)
 
 except:
-    print('fastrbo package not installed. using slower rbo package')
-    print('install fastrbo to reduce computation time: https://github.com/joerivstrien/fastrbo')
+    eprint('fastrbo package not installed. using slower rbo package')
+    eprint('install fastrbo to reduce computation time: https://github.com/joerivstrien/fastrbo')
     from rbo import RankingSimilarity
 
     def compute_rbo(search_depth,p,lranks,rranks):    
@@ -54,7 +54,7 @@ def rename_indices(left, right, mapping):
     matches = get_comparison_matches(left_stripped, right_stripped,
                                      mapping=mapping)
 
-    print(f'\nnumber of mapping ids found between profiles: {len(matches)}')
+    eprint(f'\nnumber of mapping ids found between profiles: {len(matches)}')
 
     renamed = assign_matched(left_stripped, right_stripped, matches)
     return renamed
@@ -398,7 +398,7 @@ def det_search_depth(p, min_weight, shortest_list_len,
     cur_rank = 1
     while min_achieved == False:
         if cur_rank >= shortest_list_len:
-            print('min_weight not achievable,'
+            eprint('min_weight not achievable,'
                   ' returning shortest_list_len')
             return shortest_list_len
         fraction = determine_top_weightedness(p, cur_rank)

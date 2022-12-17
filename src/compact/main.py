@@ -13,6 +13,7 @@ from . import pairwise_scoring as ps
 from . import reciprocal_hits as rh
 from . import MCL_clustering as mcl
 from . import utils as ut
+from .utils import eprint
 
 ### Helper Functions ###
 
@@ -48,10 +49,10 @@ def report_matches(comps, int_matrices, nested_tags, mappings, min_count=10):
                                             mapping=mapping)
         match_count = len(matches)
         if min_count is None:
-            print(
+            eprint(
                 f'number of matches between {left} and {right}: {match_count}')
         elif match_count < min_count:
-            print(
+            eprint(
                 f'warning! low number of matches between {left} and {right}: {match_count}')
         elif match_count >= min_count:
             pass
@@ -228,11 +229,11 @@ def between_scoring(nested_tags, int_matrices, mappings,
     """
 
     # determine search depth
-    print('determining search depth for rbo calculation..')
+    eprint('determining search depth for rbo calculation..')
     collection_sizes = [matrix.shape[0] for matrix in int_matrices.values()]
     min_size = min(collection_sizes)
     search_depth = ps.det_search_depth(p, min_search_weight, min_size)
-    print('search depth to reach min weight of'
+    eprint('search depth to reach min weight of'
           f' {min_search_weight}: {search_depth}')
 
     # get comparisons
@@ -242,14 +243,14 @@ def between_scoring(nested_tags, int_matrices, mappings,
     comps = list(combinations(tags, r=2))
 
     # report the number of matches between comparisons before computing rbos
-    print('checking the number of matching ids between comparisons..')
+    eprint('checking the number of matching ids between comparisons..')
     report_matches(comps, int_matrices, nested_tags, mappings)
-    print()
+    eprint()
 
     # score each comparison, using score_comparison
     between_top_hits = {}
     for i, (left, right) in enumerate(comps):
-        print('\rcomputing scores for comparison '
+        eprint('\rcomputing scores for comparison '
               f'{i+1} of {len(comps)}: {left}:{right}..', end="")
         left_scores = int_matrices[left]
         right_scores = int_matrices[right]
@@ -376,7 +377,7 @@ def mcl_clustering(within_top_hits, between_top_hits,
     """
     # create combined network as input for MCL
     network_outfn = os.path.join(out_folder, 'combined_network.tsv')
-    print(f'creating a combined network, saving to: {network_outfn}')
+    eprint(f'creating a combined network, saving to: {network_outfn}')
     mcl.create_combined_network(
         list(between_top_hits.values()),
         network_outfn,
@@ -387,14 +388,14 @@ def mcl_clustering(within_top_hits, between_top_hits,
 
     # perform mcl clustering on combined network
     mcl_outfn = os.path.join(out_folder, 'mcl_result.tsv')
-    print(f'performing mcl clustering, saving result to: {mcl_outfn}')
+    eprint(f'performing mcl clustering, saving result to: {mcl_outfn}')
     mcl.run_MCL(
         network_outfn,
         mcl_outfn,
         inflation=mcl_inflation,
         processes=processes
     )
-    print(f'clustering complete!')
+    eprint(f'clustering complete!')
 
     return mcl_outfn, network_outfn
 
@@ -467,7 +468,7 @@ def process_mcl_result(
 
     # optionally annotate the clusters
     if perf_cluster_annotation:
-        print('annotating clusters using reference..')
+        eprint('annotating clusters using reference..')
 
         # get subclusters
         subclusters = mcl_res['clusts_split'][reference_tag]
@@ -686,7 +687,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
 
     # optionally write top hits to file
     if save_rthits:
-        print('writing reciprocal top hits to file')
+        eprint('writing reciprocal top hits to file')
         for tag, top_hit in within_top_hits.items():
             fn = os.path.join(out_folder, f'{tag}_within_top_hits.tsv')
             rh.save_top_hits(top_hit, fn)
@@ -704,7 +705,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
         wbratio=wbratio, mcl_inflation=mcl_inflation,
         processes=processes)
 
-    print('processing clustering results..')
+    eprint('processing clustering results..')
     mcl_res = process_mcl_result(
         mcl_outfn, nested_tags, network_outfn,
         mappings, report_threshold=report_threshold,
@@ -719,7 +720,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
     # write (human-readable) results to file
     save_results(mcl_res, out_folder, mappings)
 
-    print(f'analysis complete! your results can be found here: {out_folder}')
+    eprint(f'analysis complete! your results can be found here: {out_folder}')
 
     return mcl_res
 

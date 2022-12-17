@@ -8,6 +8,7 @@ from importlib.util import spec_from_file_location,module_from_spec
 from compact.main import main
 from compact import process_data as prd
 from compact import utils
+from utils import eprint
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -186,7 +187,7 @@ def run():
     try:
         args = parse_arguments()
     except Exception as e:
-        print(f'problem parsing arguments: {e}',file=sys.stderr)
+        eprint(f'problem parsing arguments: {e}')
         sys.exit()
     
     # parse input settings
@@ -196,14 +197,14 @@ def run():
     try:
         samples = parse_profiles(sample_data)
     except Exception as e:
-        print(f'problem parsing sample data: {e}',file=sys.stderr)
+        eprint(f'problem parsing sample data: {e}')
         sys.exit()
 
     # parse mappings
     try:
         mappings = parse_mappings(mapping_data)
     except Exception as e:
-        print(f'problem parsing mapping data: {e}',file=sys.stderr)
+        eprint(f'problem parsing mapping data: {e}')
         sys.exit()
 
     # parse reference (if applicable)
@@ -211,7 +212,7 @@ def run():
         try:
             ref_groups = prd.parse_gmt(args.ref_file)
         except Exception as e:
-            print(f'problem parsing mapping data: {e}',file=sys.stderr)
+            eprint(f'problem parsing mapping data: {e}')
             sys.exit()
     else:
         ref_groups=None
@@ -220,7 +221,7 @@ def run():
     try:
         nested_tags,int_matrices = process_input(args,samples)
     except Exception as e:
-        print(f'problem processing input data: {e}',file=sys.stderr)
+        eprint(f'problem processing input data: {e}')
         sys.exit()
 
     # run analysis
@@ -240,7 +241,7 @@ def run():
             processes=args.processes
             )
     except Exception as e:
-        print(f'problem during analysis: {e}',file=sys.stderr)
+        eprint(f'problem during analysis: {e}')
 
     return 0
 
