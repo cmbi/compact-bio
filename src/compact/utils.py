@@ -4,7 +4,7 @@ try:
     import requests
 except BaseException:
     msg = "cannot import requests package, download_sample_abuns function not available"
-    eprint(msg)
+    print(msg,file=sys.stderr)
 
 from shutil import which
 
