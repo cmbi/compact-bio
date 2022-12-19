@@ -12,7 +12,8 @@ import numpy as np
 
 # local library imports
 from . import process_data as prd
-from .utils import get_comparison_matches,eprint
+from .utils import get_comparison_matches
+from .utils import eprint
 
 # import available rbo implementation
 try:
