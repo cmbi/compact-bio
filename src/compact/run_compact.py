@@ -8,7 +8,7 @@ from importlib.util import spec_from_file_location,module_from_spec
 from compact.main import main
 from compact import process_data as prd
 from compact import utils
-from utils import eprint
+from compact.utils import eprint
 
 def parse_arguments():
     parser = argparse.ArgumentParser(
@@ -21,7 +21,8 @@ def parse_arguments():
     parser.add_argument("settings",help="path of input settings file",
                         type=argparse.FileType('r'))
     parser.add_argument('-i','--in-type',choices=['abun','int'],default='abun',
-                        help='whether input samples are raw feature abundances or interaction matrices')
+                        help=('whether input samples are raw feature abundances'
+                             " or interaction matrices. default='abun'"))
     parser.add_argument(
         "-p", type=float,default=0.9,
         help="rank biased overlap p parameter, default=0.9")
@@ -39,7 +40,7 @@ def parse_arguments():
     )
     parser.add_argument(
         '--include_within',action="store_true",
-        help='include within-sample interaction scores in clustering input'
+        help='add this flag to include within-sample interaction scores in clustering input. not included by default'
     )
     parser.add_argument(
         '--wbratio',type=int,default=1,
@@ -123,7 +124,7 @@ def parse_settings(settings_fn):
                 if tag1 not in sample_data.keys():
                     sample_data[tag1] = {}
                 sample_data[tag1][tag2] = fname
-            elif ftype == 'MAP':
+            elif ftype == 'ORTH':
                 mapping_data[(tag1,tag2)] = fname
             else:
                 msg = f'unrecognized file type identifier: {ftype}'
