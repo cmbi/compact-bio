@@ -12,6 +12,35 @@ PLASMO_ANNOT_FN = '../data/PF3D7_annotation.tsv'
 PBANKA_ANNOT_FN = '../data/PBANKA_annotation.tsv'
 PKNH_ANNOT_FN = '../data/PKNH_annotation.tsv'
 
+def parse_settings(settings_fn):
+    sample_data = {}
+    mapping_data = {}
+    with open(settings_fn) as f_obj:
+        for line in f_obj:
+            splitline = line.strip().split('\t')
+            if len(splitline) != 4:
+                msg = f'line does not contain 4 tab separated values: {line}'
+                raise ValueError(msg)
+            ftype,tag1,tag2,fname = line.strip().split('\t')
+            if ftype == 'INT':
+                if tag1 not in sample_data.keys():
+                    sample_data[tag1] = {}
+                sample_data[tag1][tag2] = fname
+            elif ftype == 'ORTH':
+                mapping_data[(tag1,tag2)] = fname
+            else:
+                msg = f'unrecognized file type identifier: {ftype}'
+                raise ValueError(msg)
+
+    return (sample_data,mapping_data)
+
+def get_nested_tags(corr_dict):
+    """
+    """
+    nested_tags = {}
+    for comp_name,comp_dict in corr_dict.items():
+        nested_tags[comp_name] = list(comp_dict.keys())
+    return nested_tags
 
 def parse_profile(tsv_fn):
     """
@@ -40,6 +69,36 @@ def parse_profile(tsv_fn):
         raise ValueError(msg)
     return df
 
+def parse_profiles(fn_dict,flat_output=True):
+    """
+    parse profiles for all collections,samples in fn_dict
+
+    if flattened_output=True, it will return a flat dictionary without
+    a nested dictionary per collection. If False it will keep the nested
+    structure with a separate nested dict per collection
+    """
+    sample_dict = {}
+    for complexome,samplefiles in fn_dict.items():
+        complexome_samples = {}
+        for samplename,fname in samplefiles.items():
+            sample = parse_profile(fname)
+            complexome_samples[samplename] = sample
+        sample_dict[complexome] = complexome_samples
+
+    if flat_output:
+        flat_sample_dict = flatten_nested_dict(sample_dict)
+        return flat_sample_dict
+    else:
+        return sample_dict
+
+def flatten_nested_dict(nested_dict):
+    """
+    """
+    flattened = {}
+    for nest in nested_dict.values():
+        flattened = {**flattened,**nest}
+    return flattened
+
 def parse_mapping(tsv_fn):
     """
     parse file with identifier mapping into dict
@@ -57,6 +116,9 @@ def parse_mapping(tsv_fn):
             as_dict[key] = val
         return as_dict
 
+def parse_mappings(fn_dict):
+    return {name:parse_mapping(fn)
+            for name,fn in fn_dict.items()}
 
 def fetch_mapping(left_tag, right_tag, mappings):
     """

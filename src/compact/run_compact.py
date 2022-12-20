@@ -110,45 +110,6 @@ def parse_arguments():
     
     return args
 
-def parse_settings(settings_fn):
-    sample_data = {}
-    mapping_data = {}
-    with open(settings_fn) as f_obj:
-        for line in f_obj:
-            splitline = line.strip().split('\t')
-            if len(splitline) != 4:
-                msg = f'line does not contain 4 tab separated values: {line}'
-                raise ValueError(msg)
-            ftype,tag1,tag2,fname = line.strip().split('\t')
-            if ftype == 'INT':
-                if tag1 not in sample_data.keys():
-                    sample_data[tag1] = {}
-                sample_data[tag1][tag2] = fname
-            elif ftype == 'ORTH':
-                mapping_data[(tag1,tag2)] = fname
-            else:
-                msg = f'unrecognized file type identifier: {ftype}'
-
-    return (sample_data,mapping_data)
-
-def parse_profiles(fn_dict):
-    """
-    parse profiles for all complexomes,samples in fn_dict
-    """
-    sample_dict = {}
-    for complexome,samplefiles in fn_dict.items():
-        complexome_samples = {}
-        for samplename,fname in samplefiles.items():
-            sample = prd.parse_profile(fname)
-            complexome_samples[samplename] = sample
-        sample_dict[complexome] = complexome_samples
-   
-    return sample_dict
-
-def parse_mappings(fn_dict):
-    return {name:prd.parse_mapping(fn) 
-            for name,fn in fn_dict.items()}
-
 def process_input(args,samples):
     """_summary_
 
@@ -156,8 +117,8 @@ def process_input(args,samples):
         args (_type_): _description_
         mappings (_type_): _description_
     """
-    flattened_samples = get_int_matrices(samples)
-    nested_tags = get_nested_tags(samples)
+    flattened_samples = prd.flatten_nested_dict(samples)
+    nested_tags = prd.get_nested_tags(samples)
 
     # convert abuns to interaction scores if necessary
     if args.in_type == 'abun':
@@ -166,22 +127,6 @@ def process_input(args,samples):
         corr_dict = flattened_samples
 
     return nested_tags,corr_dict
-
-def get_nested_tags(corr_dict):
-    """
-    """
-    nested_tags = {}
-    for comp_name,comp_dict in corr_dict.items():
-        nested_tags[comp_name] = list(comp_dict.keys())
-    return nested_tags
-
-def get_int_matrices(corr_dict):
-    """
-    """
-    int_matrices = {}
-    for comp_dict in corr_dict.values():
-        int_matrices = {**int_matrices,**comp_dict}
-    return int_matrices
 
 def run():
     # parse arguments
@@ -192,18 +137,18 @@ def run():
         sys.exit()
     
     # parse input settings
-    sample_data,mapping_data = parse_settings(args.settings)
+    sample_data,mapping_data = prd.parse_settings(args.settings)
 
     # parse data files
     try:
-        samples = parse_profiles(sample_data)
+        samples = prd.parse_profiles(sample_data,flat_output=False)
     except Exception as e:
         eprint(f'problem parsing sample data: {e}')
         sys.exit()
 
     # parse mappings
     try:
-        mappings = parse_mappings(mapping_data)
+        mappings = prd.parse_mappings(mapping_data)
     except Exception as e:
         eprint(f'problem parsing mapping data: {e}')
         sys.exit()
