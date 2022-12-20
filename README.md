@@ -17,7 +17,7 @@
 
 ## About
 
-CompaCt performs automated integrative comparative analysis of large-scale (protein) interaction datasets, identifying groups of interactors (e.g., protein complexes) in parallel in multiple species, allowing systematic identification of conserved as well as taxon-specific interactions. For a more complete description of the software and its applications, please refer to the manuscript (see [here](#citing-compact)).
+CompaCt performs automated integrative comparative analysis of large-scale (protein) interaction datasets, identifying groups of interactors (e.g., protein complexes) in parallel in multiple species, allowing systematic identification and comparison of conserved as well as taxon-specific components of protein complexes and other interactions. For a more complete description of the software and its applications, please refer to the manuscript (see [here](#citing-compact)).
 
 ## Installation
 
@@ -47,6 +47,9 @@ CompaCt is implemented as a user-friendly command-line tool, as well as a flexib
 # Usage
 
 ## Input Data
+
+Below follows a description of the different types of input files that the CompaCt tool expects as input. The format of all input files is the tab-separated plain text format, as these are easy to create/edit with both spreadsheet software (e.g., excel, google-docs etc.) and programming languages like python or R.
+
 
 ### <ins> interaction data </ins>
 
@@ -85,9 +88,9 @@ The ordering of the files in the input settings file does not matter, as long as
 
 ### <ins>annotation reference file</ins>
 
-!!!!STILL TO DESCRIBE
+CompaCt is optionally able to automatically annotate the resulting clusters based on overlap with a provided reference set of protein complexes or pathways. The reference should be provided in a file with the [GMT format](https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29), a commonly used and available format to store gene sets for use in for example gene set enrichment analysis. The identifiers used in the reference file should match those of one of the analysed collections/species. An example GMT file with reference complexes is available [here](LINK TO EXAMPLE GMT FILE).
 
-## Command line Tool
+## CompaCt Command line Tool
 
 ### when installed with pip or conda
     compact [options] path/to/settings.tsv
@@ -154,12 +157,50 @@ The ordering of the files in the input settings file does not matter, as long as
                         min fraction-present of clust members to be counted for
                         annot-ref-th. default=0.25
 
-### Output
+## CompaCt Output
 
-!!! STILL TO ADD description of the output files etc. 
+When running the compact command line tool, the results will be saved to a results folder containing several files. We will describe the content of each file in more detail below.
+All result files are in tab separated text format (.tsv), so they are easy to load into a spreadsheet software (e.g., google docs, excel, etc.) or work with using a programming language like R or python. 
 
+### <ins> clust info file</ins>: "clust_info.tsv"
+
+This file contains the full list of result clusters that passed CompaCt's filtering steps.
+It contains various columns with information regarding the cluster, like their size, coherence and other metrics. Below follows a description of the information available in each of the various columns:
+- *_size: number of members of each subcluster and total cluster
+- n_represented: number of complexomes that have cluster members in this cluster
+- *_over_0.5_size: number of members with a fraction clustered score (FC) of 0.5 or greater
+- robust_represented: number of complexomes that have cluster members in this cluster with a FC of 0.5 or greater
+- *_match_fraction: the fraction of total possible “matches” within each complexome, or overall. A metric to quantify the coherence of a cluster across datasets
+
+### <ins>cluster member files</ins>: "*_cluster_members..tsv"
+For each collection of datasets (e.g., all datasets corresponding to the same species) that was provided as input, a cluster member file is available, containing all the clustered proteins and their cluster assignments, along with additional information like their orthologs in other species as well as their FC (fraction clustered) scores. Below follows a description of the information available in each of the various columns:
+
+- clust_id: id of cluster this protein/gene entry is clustered with
+- id: identifier of clustered protein/gene
+- fraction_clustered: the FC score of this protein with this cluster. Defined as: number of replicate datasets in which this protein clusters with this cluster divided by the total number of replicates for this collection
+- *_mapping: orthologous protein in other collection, based on provided pairwise orthology
+- best_guess_selection: whether this protein is part of the "best guess" selection criterion of the respective cluster
+- match_over_threshold: whether this protein has an ortholog in another collection that has a FC score over 0.5
+
+### <ins>MCL result file</ins>: "MCL_result.tsv"
+The raw cluster output from the MCL clustering software. for each line contains the members of one of the MCL clusters, separated by tab characters. The protein/gene identifiers used are prepended by the replicate dataset identifier that they originate from. for more details regarding the MCL clustering software and its output please refer to [their documentation](https://micans.org/mcl/)
+
+### <ins>combined network file</ins>: "combined_network.tsv"
+The combined network generated by compact, containing proteins/genes from all provided datasets, to be used as input for clustering by MCL. The protein/gene identifiers used are prepended by the replicate dataset identifier that they originate from.
+
+### <ins>clust_nodes</ins>: "clust_nodes.tsv"
+contains all clustered proteins, along with additional information. Can be used together with the clust_eges.tsv file for visualization with tools like cytoscape or analysis of CompaCt's output clusters
+
+### <ins>clust_edges</ins>: "clust_edges.tsv"
+contains all edges between proteins part of the same cluster, along with additional information. Can be used together with the clust_nodes.tsv file for network vizualisation with tools like cytoscape or analysis of CompaCt's output clusters 
 
 ## Python Package
+
+quick tutorial showing to run the same analysis from python as you did with the command line tool
+
+Then explain you can use the package more flexibly to rerun certain steps without having to do the complete reanalysis, etc. then refer to the package documentation for information about how to make use of the various functions available in the package.
+    maybe mention some useful functions?
+    maybe even some example notebook with custom (re-)analysis?
 
     import compact ....
     MAKE AND EXAMPLE SCRIPT DOING SOME BASIC STUFF. WITH COMMENTS
