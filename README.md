@@ -194,17 +194,51 @@ contains all clustered proteins, along with additional information. Can be used 
 ### <ins>clust_edges</ins>: "clust_edges.tsv"
 contains all edges between proteins part of the same cluster, along with additional information. Can be used together with the clust_nodes.tsv file for network vizualisation with tools like cytoscape or analysis of CompaCt's output clusters 
 
-## Python Package
+## CompaCt Python Package
 
-quick tutorial showing to run the same analysis from python as you did with the command line tool
+Aside from using the CompaCt command line tool, that performs the complete analysis from expression/abundance datasets to annotated species-specific clusters, CompaCt can also be used as a python package. From python CompaCt can be used more flexibly, for example to rerun only specific steps in the analysis with changed parameters. For complete documentation of all the modules and functions available in the CompaCt package refer to the [package documentation](LINK TO PACKAGE DOCUMENTATION)
 
-Then explain you can use the package more flexibly to rerun certain steps without having to do the complete reanalysis, etc. then refer to the package documentation for information about how to make use of the various functions available in the package.
-    maybe mention some useful functions?
-    maybe even some example notebook with custom (re-)analysis?
+Running a complete CompaCt analysis from python
 
-    import compact ....
-    MAKE AND EXAMPLE SCRIPT DOING SOME BASIC STUFF. WITH COMMENTS
-    .....
+    from compact.main import main
+    import compact.process_data as prd
+    import compact.utils as ut
+
+    # parse complexome profiles and orthology files as listed in settings.tsv
+    sample_data,mapping_data = prd.parse_settings('path/to/settings_file.tsv')
+    samples = prd.parse_profiles(sample_data)
+    mappings = prd.parse_mappings(mapping_data)
+
+    # get collection/replicate structure from settings file
+    nested_tags = prd.get_nested_tags(sample_data)
+
+    # generate Pearson correlation matrices from the complexome profile abundance data
+    corr_matrices = ut.correlate_samples(samples)
+
+    # run complete CompaCt analysis
+    main(
+        nested_tags,corr_matrices,mappings,
+        output_location='results/',
+        job_name='example_run',
+        processes=4)
+
+Now let's say you would like to use a different granularity for the clustering step of the analysis, without having to rerun the computationally expensive rbo score computation. You could do this as follows:
+
+    from compact.MCL_clustering import run_MCL
+    from compact.main import process_mcl_result,save_results
+
+    # rerun MCL with a different inflation parameter value
+    run_MCL('results/example_run_results/combined_network.tsv', 'results/rerun_results/mcl_rerun_result.tsv',
+            inflation=2.5,processes=4)
+
+    # process the MCL results
+    # to get scored and filtered species-specific clusters
+    mcl_res = process_mcl_result(
+        'results/rerun_results/mcl_rerun_result.tsv',nested_tags,
+        'results/example_run_results/combined_network.tsv',mappings)
+
+    # save the results to an output folder for manual inspection
+    save_results(mcl_res,'../results/rerun_results/',mappings)
 
 ## Licence
 
@@ -225,7 +259,7 @@ Then explain you can use the package more flexibly to rerun certain steps withou
 	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Issues
-If you have questions or encounter any problems or bugs, please report this in the [issue channel](https://github.com/joerivstrien/compact/issues).
+If you have questions or encounter any problems or bugs, please report them in the [issue channel](https://github.com/joerivstrien/compact/issues).
 
 
 ## Citing Compact
