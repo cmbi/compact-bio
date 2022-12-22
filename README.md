@@ -10,7 +10,8 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Output](#output)
-- [License](./LICENSE)
+- [Python Package](#python-package)
+- [License](#licence)
 - [Issues](#issues)
 - [Citing CompaCt](#citing-compact)
 
@@ -25,6 +26,8 @@ CompaCt is implemented as a user-friendly command-line tool, as well as a flexib
 
 **dependencies**
 - [Python >= 3.7](https://www.python.org/) (check if that is correct, link..)
+- [pandas](https://pandas.pydata.org/)
+- [numpy](https://numpy.org/)
 - [rbo](https://github.com/changyaochen/rbo)
 - [MCL](https://micans.org/mcl/)
 - [optional]: [fastrbo](https://github.com/joerivstrien/fastrbo) -- optional alternative to "rbo" package
@@ -51,7 +54,7 @@ CompaCt is implemented as a user-friendly command-line tool, as well as a flexib
 Below follows a description of the different types of input files that the CompaCt tool expects as input. The format of all input files is the tab-separated plain text format, as these are easy to create/edit with both spreadsheet software (e.g., excel, google-docs etc.) and programming languages like python or R.
 
 
-### <ins> interaction data </ins>
+### interaction data
 
 CompaCt performs comparative clustering on a collection of (protein) correlation datasets. It expects a symmetric matrix of correlation or interaction scores, that represent interaction strength or likelihood. CompaCt does not require a specific metric or range of interaction scores, and can handle any numeric score as long as it can be used to sort or assign ranks to interactors.
 
@@ -62,11 +65,11 @@ When using the command-line tool, the files containing these interaction scores 
 Aside from directly providing correlation/interaction scores between proteins, CompaCt can automatically compute Pearson correlation scores from a matrix of expression/abundance data, like a complexome profile. These will then be used as interaction scores in subsequent CompaCt analysis. Similar to the interaction files, when using the command-line tool these data should be provided as a tab-separated text file, with the first row containing identifiers. An example of a file containing protein protein expression data is available [here](LINK TO EXAMPLE COMPLEXOME PROFILE)
 
 
-### <ins>pairwise orthology data</ins>
+### pairwise orthology data
 
 to enable comparison between species, or other datasets with different identifiers, pairwise orthology or identifier mappings need to be provided. The identifier pairs should correspond to the identifiers used in the interaction or expression data. When using the command-line tool, the identifier pairs should be provided as a text file, with two columns separated by a tab. each column contains identifiers of one of the two species this orthology file relates to. An example mapping file is available [here](LINK TO EXAMPLE MAPPING FILE)
 
-### <ins>settings file</ins>
+### settings file
 
 To prevent an extensive list of input commands when performing CompaCt analysis using the command-line tool on a large number of datasets, the list and path of all input files are provided in a settings file. This should be a "tab" delimited plain text file, where each input file is listed per row. Each file is desribed with four fields (delimited by tab characters). below follows a description of these four fields for interaction and orthology files.
 
@@ -157,12 +160,12 @@ CompaCt is optionally able to automatically annotate the resulting clusters base
                         min fraction-present of clust members to be counted for
                         annot-ref-th. default=0.25
 
-## CompaCt Output
+## Output
 
 When running the compact command line tool, the results will be saved to a results folder containing several files. We will describe the content of each file in more detail below.
 All result files are in tab separated text format (.tsv), so they are easy to load into a spreadsheet software (e.g., google docs, excel, etc.) or work with using a programming language like R or python. 
 
-### <ins> clust info file</ins>: "clust_info.tsv"
+#### <ins> clust info file</ins>: "clust_info.tsv"
 
 This file contains the full list of result clusters that passed CompaCt's filtering steps.
 It contains various columns with information regarding the cluster, like their size, coherence and other metrics. Below follows a description of the information available in each of the various columns:
@@ -172,7 +175,7 @@ It contains various columns with information regarding the cluster, like their s
 - robust_represented: number of complexomes that have cluster members in this cluster with a FC of 0.5 or greater
 - *_match_fraction: the fraction of total possible “matches” within each complexome, or overall. A metric to quantify the coherence of a cluster across datasets
 
-### <ins>cluster member files</ins>: "*_cluster_members..tsv"
+#### <ins>cluster member files</ins>: "*_cluster_members.tsv"
 For each collection of datasets (e.g., all datasets corresponding to the same species) that was provided as input, a cluster member file is available, containing all the clustered proteins and their cluster assignments, along with additional information like their orthologs in other species as well as their FC (fraction clustered) scores. Below follows a description of the information available in each of the various columns:
 
 - clust_id: id of cluster this protein/gene entry is clustered with
@@ -182,19 +185,19 @@ For each collection of datasets (e.g., all datasets corresponding to the same sp
 - best_guess_selection: whether this protein is part of the "best guess" selection criterion of the respective cluster
 - match_over_threshold: whether this protein has an ortholog in another collection that has a FC score over 0.5
 
-### <ins>MCL result file</ins>: "MCL_result.tsv"
+#### <ins>MCL result file</ins>: "MCL_result.tsv"
 The raw cluster output from the MCL clustering software. for each line contains the members of one of the MCL clusters, separated by tab characters. The protein/gene identifiers used are prepended by the replicate dataset identifier that they originate from. for more details regarding the MCL clustering software and its output please refer to [their documentation](https://micans.org/mcl/)
 
-### <ins>combined network file</ins>: "combined_network.tsv"
+#### <ins>combined network file</ins>: "combined_network.tsv"
 The combined network generated by compact, containing proteins/genes from all provided datasets, to be used as input for clustering by MCL. The protein/gene identifiers used are prepended by the replicate dataset identifier that they originate from.
 
-### <ins>clust_nodes</ins>: "clust_nodes.tsv"
+#### <ins>clust_nodes</ins>: "clust_nodes.tsv"
 contains all clustered proteins, along with additional information. Can be used together with the clust_eges.tsv file for visualization with tools like cytoscape or analysis of CompaCt's output clusters
 
-### <ins>clust_edges</ins>: "clust_edges.tsv"
+#### <ins>clust_edges</ins>: "clust_edges.tsv"
 contains all edges between proteins part of the same cluster, along with additional information. Can be used together with the clust_nodes.tsv file for network vizualisation with tools like cytoscape or analysis of CompaCt's output clusters 
 
-## CompaCt Python Package
+## Python Package
 
 Aside from using the CompaCt command line tool, that performs the complete analysis from expression/abundance datasets to annotated species-specific clusters, CompaCt can also be used as a python package. From python CompaCt can be used more flexibly, for example to rerun only specific steps in the analysis with changed parameters. For complete documentation of all the modules and functions available in the CompaCt package refer to the [package documentation](LINK TO PACKAGE DOCUMENTATION)
 
@@ -228,8 +231,9 @@ Now let's say you would like to use a different granularity for the clustering s
     from compact.main import process_mcl_result,save_results
 
     # rerun MCL with a different inflation parameter value
-    run_MCL('results/example_run_results/combined_network.tsv', 'results/rerun_results/mcl_rerun_result.tsv',
-            inflation=2.5,processes=4)
+    run_MCL('results/example_run_results/combined_network.tsv',
+            'results/rerun_results/mcl_rerun_result.tsv',
+             inflation=2.5,processes=4)
 
     # process the MCL results
     # to get scored and filtered species-specific clusters
