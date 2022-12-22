@@ -17,6 +17,7 @@ from .utils import eprint
 
 ### Helper Functions ###
 
+
 def report_matches(comps, int_matrices, nested_tags, mappings, min_count=10):
     """
     reports low match numbers for each sample comparison
@@ -96,15 +97,17 @@ def check_matches(nested_tags, int_matrices, mappings, min_count=None):
 
 ### Functions to apply each analysis step separately to a set of profiles ###
 
+
 def validate_params(arg_dict):
     """
     validates main function arguments
 
     Args:
         arguments (dict): main function's locals
+                        used to get command line arguments
 
-    Returns:
-        _type_: _description_
+    Raises:
+        specific eror related to any problems with input arguments
     """
 
     # check output location
@@ -234,7 +237,7 @@ def between_scoring(nested_tags, int_matrices, mappings,
     min_size = min(collection_sizes)
     search_depth = ps.det_search_depth(p, min_search_weight, min_size)
     eprint('search depth to reach min weight of'
-          f' {min_search_weight}: {search_depth}')
+           f' {min_search_weight}: {search_depth}')
 
     # get comparisons
     tags = []
@@ -251,7 +254,7 @@ def between_scoring(nested_tags, int_matrices, mappings,
     between_top_hits = {}
     for i, (left, right) in enumerate(comps):
         eprint('\rcomputing scores for comparison '
-              f'{i+1} of {len(comps)}: {left}:{right}..', end="")
+               f'{i+1} of {len(comps)}: {left}:{right}..', end="")
         left_scores = int_matrices[left]
         right_scores = int_matrices[right]
 
@@ -300,7 +303,8 @@ def score_comparison(left_scores, right_scores, mapping=False,
             parallelization parameter
 
     Returns:
-        _type_: _description_
+        pd.Series: reciprocal top hits in pd series format
+            2-level multiindex with id pair, values are scores
     """
     # determine rbo scores
     rbo_scores = ps.pairwise_rbo_scoring(
@@ -511,31 +515,33 @@ def save_results(mcl_res, out_folder, mappings):
 
     # get cluster member tables per collection
     member_tables = prd.split_clustmember_tables(mcl_res['nodes'], mappings)
-    for name ,table in member_tables.items():
+    for name, table in member_tables.items():
         best_guesses = mcl_res['best_guess'][name]
         matches_over_threshold = mcl_res['match_over_threshold'][name]
         table['best_guess_selection'] = False
         table['match_over_threshold'] = False
 
         # add best guess selection to clustmember tables
-        for cid,members in best_guesses.items():
-            if not cid in table.index:
+        for cid, members in best_guesses.items():
+            if cid not in table.index:
                 continue
             selected = (table.index == cid) & (table['id'].isin(members))
-            table.loc[selected,'best_guess_selection'] = True
+            table.loc[selected, 'best_guess_selection'] = True
 
         # add matches over threshold to clustmember tables
-        for cid,members in matches_over_threshold.items():
-            if not cid in table.index:
+        for cid, members in matches_over_threshold.items():
+            if cid not in table.index:
                 continue
             selected = (table.index == cid) & (table['id'].isin(members))
-            table.loc[selected,'match_over_threshold'] = True
+            table.loc[selected, 'match_over_threshold'] = True
 
         # write table to file
         table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')
         table.to_csv(table_outfn, sep='\t')
 
 ### Main function to perform complete analysis in 1 go ###
+
+
 def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
          th_criterium='percent', th_percent=1,
          include_within=True,
@@ -600,7 +606,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
             samples >= report_threshold. Defaults to 0.5.
         filter_clusters (bool, optional): default True
             whether to filter out clusters with less than 2 matches
-            or proteins over report_threshold    
+            or proteins over report_threshold
         perf_cluster_annotation (bool, optional): Defaults to False.
             whether to perform automatic annotation of clusters using ref
         reference_groups (dict, optional): Defaults to None.
@@ -635,7 +641,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
     # check if mcl is available, error if not
     if not ut.mcl_available():
         msg = ("MCL not available, cannot perform analysis"
-            " if MCL executable is not in PATH")
+               " if MCL executable is not in PATH")
         raise ValueError(msg)
 
     ## validate input parameters ##
@@ -723,19 +729,3 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
     eprint(f'analysis complete! your results can be found here: {out_folder}')
 
     return mcl_res
-
-
-if __name__ == "__main__":
-    print('Hi!')
-
-    left = 'GAM1'
-    right = 'AS2'
-    nested_tags = {
-        'GAM': ['GAM1', 'GAM2'],
-        'AS': ['AS1', 'AS2']
-    }
-
-    mappings = {('AS', 'GAM'): {'prot1': 'prot2'}}
-    ut.get_comp_mapping(left, right, nested_tags, mappings)
-
-    quit()

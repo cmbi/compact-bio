@@ -19,6 +19,8 @@ if not ut.mcl_available():
          " clustering if MCL executable is not in PATH")
 
 # normalise correlation and RBO scores
+
+
 def normalise_scores(scores_list):
     """
     normalise top hit scores correcting for average per comparison
@@ -268,7 +270,15 @@ def get_clust_info(clusters, clusters_split,
 
 
 def invert_nested_tags(nested_tags):
-    """creates sample to collection mapping"""
+    """
+    creates sample to collection mapping collection to sample
+
+    Args:
+        nested_tags (dict): collection-replicate mapping
+
+    Returns:
+        dict: replicate-collection mapping
+    """
     inverted = {}
     for ctag, mtags in nested_tags.items():
         for mtag in mtags:
@@ -278,14 +288,14 @@ def invert_nested_tags(nested_tags):
 
 def fetch_tag_members(members, tag):
     """
-    for list of tagged members,get stripped ids with this tag
+    for list of tagged clust member ids,get stripped ids with given tag
 
     Args:
-        members (_type_): _description_
-        tag (_type_): _description_
+        members (list): cluser member ids, tagged with replicate ids
+        tag (string): replicate id tag
 
     Returns:
-        _type_: _description_
+        list: stripped ids of members that had given tag
     """
     tag_members = [mid[len(tag) + 1:] for mid in members
                    if tag in mid]
@@ -294,14 +304,16 @@ def fetch_tag_members(members, tag):
 
 def split_clusters(clusts, sample_tags):
     """
-    split clusters into members per sample
+    split clusters into per-replicate subcluster members
 
     Args:
-        clusts (_type_): _description_
-        sample_tags (_type_): _description_
+        clusts (dict): members for each cluster
+        sample_tags (list): list with all replicate ids
 
     Returns:
-        dict of dicts: _description_
+        dict of dicts:
+            keys: cluster id
+            values: dict with member list for each replicate
     """
     nested_clusters = {}
     for cid, members in clusts.items():
@@ -315,6 +327,15 @@ def split_clusters(clusts, sample_tags):
 
 
 def get_sample_tags(nested_tags):
+    """
+    get list of all replicate tags from nested_tags
+
+    Args:
+        nested_tags (dict of dicts): collection-replicate id structure
+
+    Returns:
+        list: all replicate-level ids
+    """
     sample_tags = []
     for tags in nested_tags.values():
         sample_tags += tags
@@ -325,6 +346,20 @@ def count_comp_matches(nested_cluster, mappings, nested_tags,
                        get_poss_matches=True):
     """
     count found matches per comparison for given cluster
+
+    optionally also return the possible match counts per comparison
+
+    Args:
+        nested_cluster (dict): member list for each replicate
+        mappings (dict): containing id mappings between collections
+            keys: tuple with (query,subject) collection-level tags
+            values: dicts with id mappings from query to subject
+        nested_tags (dict): collection-replicate id structure
+        get_poss_matches (bool, optional): Defaults to True.
+            whether to also return possible match counts per comparison
+
+    Returns:
+        dict: match counts for each comparison
     """
     sample_tags = get_sample_tags(nested_tags)
     comps = list(combinations(sample_tags, r=2))
@@ -373,6 +408,13 @@ def sum_counts(comp_counts, nested_tags):
     sum per collection and total count
 
     in a way that loops over the total set of comparisons only once
+
+    Args:
+        comp_counts (dict): mach counts for all comparisons
+        nested_tags (dict): collection-replicate id structure
+
+    Returns:
+        dict: summed match counts for all collections as well as total
     """
     summed_counts = {col: 0 for col in nested_tags.keys()}
     summed_counts['total'] = 0
@@ -395,7 +437,25 @@ def sum_counts(comp_counts, nested_tags):
 def get_match_counts(nested_clusters, mappings, nested_tags,
                      report_fractions=True):
     """
-    count matches for every cluster
+    count matches between datasets/collections for every cluster
+
+    Args:
+        nested_clusters (dict of dicts):
+            cluster members separated over replicates
+                keys: cluster id
+                values: dict with member list for each replicate
+
+        mappings (dict): containing id mappings between collections
+            keys: tuple with (query,subject) collection-level tags
+            values: dicts with id mappings from query to subject
+        nested_tags (dict): collection-replicate id structure
+        report_fractions (bool, optional): Defaults to True.
+            whether to only report raw counts or also normalised
+            counts: divided by the number of possible matches
+    Returns:
+        pd.DataFrame: cluster match counts for all collections and total
+            rows: clusters
+            columns: collections and 'total'
     """
     match_counts = {}
     match_fractions = {}
@@ -458,7 +518,6 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
         dict: list of matches for each comparison
             key (tuple): comparison with tags as (left,right)
             value (list of tuples): list of member matches: (left_id,right_id)
-
     """
     # check if comps are actually present in subclusters
     comps = [comp for comp in comps
@@ -521,14 +580,21 @@ def fetch_subcluster_matches(subclusters, mappings, comps,
     return comp_matches
 
 
-def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
+def get_node_edge_tables(clusts, clusts_split, mappings, nested_tags, network):
     """
     generate node and edge tables for clustered nodes
 
     Args:
-        clusts (_type_): _description_
-        clusts_split (_type_): _description_
-        network (_type_): _description_
+        clusts (dict): MCL output clusters
+        clusts_split (nested dict):
+                cluster members, split per collection, samples aggregated
+                members are dict with key: member id, value: member weight
+        network (pd.DataFrame): combined network stored as df of edges
+            columns: left_node, right_node, edge weight
+
+    Returns tuple with (nodes,edges):
+        nodes: pd.Dataframe with annotated clustered nodes
+        edges: pd.DataFrame with annotated edges between clustered nodes
     """
     # add cluster ids to edges, drop out of cluster edges
     eprint('adding clust ids to edges..')
@@ -576,7 +642,9 @@ def get_node_edge_tables(clusts, clusts_split,mappings, nested_tags, network):
 
 
 def select_clusters(clust_info, match_counts, min_match_count=2):
-    """select clusters with members over threshold and at least two matches"""
+    """
+    select clusters with members over threshold and at least two matches
+    """
     robust_present = set(
         clust_info[clust_info['robust_represented'] != 0].index.values)
     nonzero_matches = set(
@@ -620,8 +688,9 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
                 table with information of each identified cluster
             'clusts': dict
                 clusters with all members together
-            'clusts_split': dict
+            'clusts_split': (nested dict):
                 cluster members, split per collection, samples aggregated
+                members are dict with key: member id, value: member weight
             'best_guess': dict of dicts
                 contains dict of subclusters for each collection
                 subclusters: list of members that pass best guess selection
@@ -662,7 +731,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
         new_clusts_split = {}
         for col, subclusts in clusts_split.items():
             new_subclusts = {key: val for key, val in subclusts.items()
-                            if key in selected}
+                             if key in selected}
             new_clusts_split[col] = new_subclusts
         clusts_split = new_clusts_split
         clust_info = clust_info.loc[selected]
@@ -676,11 +745,12 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
 
     # get cluster node and edge tables for network analysis/visualization
     network = pd.read_csv(network_fn, sep='\t', header=None)
-    nodes, edges = get_node_edge_tables(clusts, clusts_split, mappings, nested_tags, network)
+    nodes, edges = get_node_edge_tables(
+        clusts, clusts_split, mappings, nested_tags, network)
 
     # get best guess members, and those that have an orth passing threshold
-    best_guess,match_over_threshold = select_members(
-        clusts_split,mappings,
+    best_guess, match_over_threshold = select_members(
+        clusts_split, mappings,
         threshold=report_threshold
     )
 
@@ -689,7 +759,7 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
         'clusts': clusts,
         'clusts_split': clusts_split,
         'best_guess': best_guess,
-        'match_over_threshold':match_over_threshold,
+        'match_over_threshold': match_over_threshold,
         'nodes': nodes,
         'edges': edges,
     }
@@ -823,46 +893,3 @@ def get_cluster_nodes(clust_id, clusts_split):
     node_frame = pd.concat(cluster_nodes)
     node_frame['clust_id'] = clust_id
     return node_frame
-
-
-if __name__ == "__main__":
-    from run_compact import parse_settings, parse_mappings, get_nested_tags, parse_profiles, get_int_matrices
-
-    mcl_res_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/mcl_result.tsv'
-    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/combined_network.tsv'
-
-    settings_fn = '12_complexome_input.py'
-    clusts = prd.parse_MCL_result(mcl_res_fn)
-    sample_data, mapping_data = parse_settings(settings_fn)
-    mappings = parse_mappings(mapping_data)
-
-    # decide later how to get these in actual code
-    nested_tags = get_nested_tags(sample_data)
-    sample_tags = []
-    for tags in nested_tags.values():
-        sample_tags += tags
-
-    mcl_res = process_annot_MCL_res(
-        mcl_res_fn, nested_tags, network_fn, mappings)
-
-    """
-    TAKEN FROM THE SAVE_RESULTS FUNCTION IN MAIN
-    """
-    out_folder = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_Apr1_results/new_processed'
-    import os
-
-    # clust info
-    clust_info_outfn = os.path.join(out_folder, 'clust_info.tsv')
-    mcl_res['clust_info'].to_csv(clust_info_outfn, sep='\t')
-
-    # cluster member tables per collection
-    member_tables = prd.split_clustmember_tables(mcl_res['nodes'], mappings)
-    for name, table in member_tables.items():
-        table_outfn = os.path.join(out_folder, f'{name}_cluster_members.tsv')
-        table.to_csv(table_outfn, sep='\t')
-
-    # clusts_split = separate_subclusters(clusts,nested_tags)
-
-    # clust_info = get_clust_info(clusts,clusts_split)
-
-    # clust_info.to_csv('~/Downloads/clust_info_test.tsv',sep='\t')

@@ -18,18 +18,20 @@ from .utils import eprint
 # import available rbo implementation
 try:
     from fastrbo import rank_biased_overlap
-    def compute_rbo(search_depth,p,lranks,rranks):
-        return rank_biased_overlap(
-            search_depth,p,lranks,rranks)
 
-except:
+    def compute_rbo(search_depth, p, lranks, rranks):
+        return rank_biased_overlap(
+            search_depth, p, lranks, rranks)
+
+except BaseException:
     eprint('fastrbo package not installed. using slower rbo package')
     eprint('install fastrbo to reduce computation time: https://github.com/joerivstrien/fastrbo')
     from rbo import RankingSimilarity
 
-    def compute_rbo(search_depth,p,lranks,rranks):    
+    def compute_rbo(search_depth, p, lranks, rranks):
         rbo_ranking = RankingSimilarity(lranks, rranks)
         return rbo_ranking.rbo(p=p)
+
 
 def rename_indices(left, right, mapping):
     """
@@ -202,7 +204,7 @@ def score_comparison(comparison, p):
             structure: ((left_id,right_id),rbo_score)
     """
     (lprot, lranks), (rprot, rranks) = comparison
-    rbo = compute_rbo(len(lranks),p,lranks,rranks)
+    rbo = compute_rbo(len(lranks), p, lranks, rranks)
     return ((lprot, rprot), rbo)
 
 
@@ -399,7 +401,7 @@ def det_search_depth(p, min_weight, shortest_list_len,
     while min_achieved == False:
         if cur_rank >= shortest_list_len:
             eprint('min_weight not achievable,'
-                  ' returning shortest_list_len')
+                   ' returning shortest_list_len')
             return shortest_list_len
         fraction = determine_top_weightedness(p, cur_rank)
         if fraction >= min_weight:
@@ -408,16 +410,3 @@ def det_search_depth(p, min_weight, shortest_list_len,
             cur_rank += stepsize
 
     return cur_rank
-
-
-if __name__ == "__main__":
-    # perform pairwise scoring of proteins within samples
-    print('off we go!')
-    # perform interactor-based simlarity scoring of proteins between samples
-    # fn = sys.argv[1]
-    # res = prd.parse_profile(fn)
-    # print(res)
-    # permute_ranked_lists(1611, 839,327)
-
-    search_depth = det_search_depth(0.90, 0.999, 600)
-    print(search_depth)

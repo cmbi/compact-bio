@@ -4,15 +4,17 @@ try:
     import requests
 except BaseException:
     msg = "cannot import requests package, download_sample_abuns function not available"
-    print(msg,file=sys.stderr)
+    print(msg, file=sys.stderr)
 
 from shutil import which
+
 
 def mcl_available():
     """
     check whether MCL tool is in PATH and marked as an executable
     """
     return which("mcl") is not None
+
 
 def download_sample_abuns(
         sample_id, out_fn,
@@ -58,7 +60,14 @@ def map_df_index(df, mapping):
     """
     rename df's index using given mapping {index:new_id}
 
-    for ids that have no mapping original id is used
+    original id is used for ids that have no mapping
+
+    Args:
+        df (pd.Dataframe): table to map index of
+        mapping (dict): identifier mapping to use
+
+    Returns:
+        pd.Dataframe: table with mapped index
     """
     df = df.copy()
     df['mapped'] = df.index.map(mapping)
@@ -70,9 +79,21 @@ def map_df_index(df, mapping):
     df.set_index('mapped', inplace=True)
     return df
 
+
 def get_stripped_mapping(full_id_list, sep='::'):
     """
-    get dict with stripped ids mapping to list of their full ids
+    strip appendix from full ids
+
+    stripped ids are stored in dict mapping back to full ids
+
+    Args:
+        full_id_list (list): list of full ids to be stripped
+        sep (str, optional): Defaults to '::'.
+            separator between raw id and appendix
+
+    Returns:
+        dict: stripped ids as keys mapping to their original
+              full ids with appendix
     """
     mapping = {}
 
@@ -84,9 +105,11 @@ def get_stripped_mapping(full_id_list, sep='::'):
             mapping[stripped] = [full_id]
     return mapping
 
+
 def invert_mapping(mapping_dict):
     """inverts given dict"""
-    return {val:key for key,val in mapping_dict.items()}
+    return {val: key for key, val in mapping_dict.items()}
+
 
 def get_comp_mapping(left, right, nested_tags, mappings):
     """
@@ -114,21 +137,32 @@ def get_comp_mapping(left, right, nested_tags, mappings):
             right_tag = key
 
     # get (orthology) mapping if its provided
-    mapping = get_col_mapping(left_tag,right_tag,mappings)
+    mapping = get_col_mapping(left_tag, right_tag, mappings)
 
     return mapping
 
-def get_col_mapping(left,right,mappings):
+
+def get_col_mapping(left, right, mappings):
     """
-    grab mapping for comparison of 2 collections
+    grab mapping for comparison of 2 collections from mappings
+
+    Args:
+        left/right (string): collection identifiers
+        mappings (dict of dicts): dict with all available mappings
+
+    Returns:
+        dict: mapping between left and right collections
+            keys: left collection ids
+            values: corresponding right collection ids
     """
-    if (left,right) in mappings.keys():
-        mapping = mappings[(left,right)]
-    elif (right,left) in mappings.keys():
-        mapping = invert_mapping(mappings[(right,left)])
+    if (left, right) in mappings.keys():
+        mapping = mappings[(left, right)]
+    elif (right, left) in mappings.keys():
+        mapping = invert_mapping(mappings[(right, left)])
     else:
         mapping = False
     return mapping
+
 
 def get_comparison_matches(left, right, mapping=None):
     """
@@ -157,9 +191,18 @@ def get_comparison_matches(left, right, mapping=None):
 
     return matches
 
+
 def get_cluster_max_fraction(clusters, profile):
     """
-    determine fraction of cluster where mean at max
+    determine fraction in profile where cluster mean abundance is at max
+
+    Args:
+        clusters (dict): cluster ids and lists of members
+        profile (pd.DataFrame): table with protein (rows) abundances
+            in a number of fractions (columns)
+
+    Returns:
+        _type_: _description_
     """
     # scale profile to weigh each protein equally
     scaled = profile.scale()
@@ -195,6 +238,7 @@ def correlate_samples(samples, method="pearson"):
         int_matrices[name] = correlated
 
     return int_matrices
+
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)

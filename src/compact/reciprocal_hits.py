@@ -104,7 +104,6 @@ def get_reciprocal_top_hits(scores, score_type='between', criterium='percent',
         OR
         top_hits_dict (dict): dictionary with reciprocal
             top hits. strucure: {('l_id','r_id'):score}
-
     """
     # omit query id from potential hits
     #  if determining top hits "within" a sample
@@ -159,10 +158,3 @@ def save_top_hits(top_hits, fn):
         fn (string): filepath of output
     """
     top_hits.to_csv(fn, sep='\t', header=False)
-
-
-if __name__ == "__main__":
-
-    score_fn = argv[1]
-    res = reciprocal_top_hits(score_fn, criterium='percent', percent=0.5)
-    print(len(res))

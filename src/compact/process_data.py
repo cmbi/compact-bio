@@ -7,12 +7,22 @@ from collections import Counter
 import pandas as pd
 import numpy as np
 
-TOXO_ANNOT_FN = '../data/TGGT1_annotation.tsv'
-PLASMO_ANNOT_FN = '../data/PF3D7_annotation.tsv'
-PBANKA_ANNOT_FN = '../data/PBANKA_annotation.tsv'
-PKNH_ANNOT_FN = '../data/PKNH_annotation.tsv'
 
 def parse_settings(settings_fn):
+    """
+    parse input settings file
+
+    Args:
+        settings_fn (string): path to settings file to be parsed
+
+    Raises:
+        ValueError: if file content doesn't match specifications
+
+    Returns tuple with (sample_data,mapping_data):
+        saple_data (dict of dicts):
+            filenames of interaction data per collection
+        mapping_data (dict): filepaths of orthology files per comparison
+    """
     sample_data = {}
     mapping_data = {}
     with open(settings_fn) as f_obj:
@@ -21,26 +31,34 @@ def parse_settings(settings_fn):
             if len(splitline) != 4:
                 msg = f'line does not contain 4 tab separated values: {line}'
                 raise ValueError(msg)
-            ftype,tag1,tag2,fname = line.strip().split('\t')
+            ftype, tag1, tag2, fname = line.strip().split('\t')
             if ftype == 'INT':
                 if tag1 not in sample_data.keys():
                     sample_data[tag1] = {}
                 sample_data[tag1][tag2] = fname
             elif ftype == 'ORTH':
-                mapping_data[(tag1,tag2)] = fname
+                mapping_data[(tag1, tag2)] = fname
             else:
                 msg = f'unrecognized file type identifier: {ftype}'
                 raise ValueError(msg)
 
-    return (sample_data,mapping_data)
+    return (sample_data, mapping_data)
+
 
 def get_nested_tags(corr_dict):
     """
+    fetches collection-replicate structure from parsed sample data
+
+    Returns: nested_tags (dict)
+            nested tag structure for profiles
+            keys: collection-level tags
+            values: sample-level tags
     """
     nested_tags = {}
-    for comp_name,comp_dict in corr_dict.items():
+    for comp_name, comp_dict in corr_dict.items():
         nested_tags[comp_name] = list(comp_dict.keys())
     return nested_tags
+
 
 def parse_profile(tsv_fn):
     """
@@ -64,23 +82,33 @@ def parse_profile(tsv_fn):
         raise ValueError(msg)
     try:
         df = df.astype(float)
-    except:
+    except BaseException:
         msg = f'profile contains non-numeric values: {tsv_fn}'
         raise ValueError(msg)
     return df
 
-def parse_profiles(fn_dict,flat_output=True):
+
+def parse_profiles(fn_dict, flat_output=True):
     """
     parse profiles for all collections,samples in fn_dict
 
-    if flattened_output=True, it will return a flat dictionary without
-    a nested dictionary per collection. If False it will keep the nested
-    structure with a separate nested dict per collection
+    Args:
+        fn_dict (nested dict):
+            filenames of interaction data per collection
+        flat_output (bool, optional). Defaults to True.
+            if True, will return a flat dictionary without
+            a nested dictionary per collection.
+            If False,  will keep the nested
+            structure with a separate nested dict per collection
+
+    Returns:
+        dict of dicts: parsed sample data
+        in nested collection-replicate structure
     """
     sample_dict = {}
-    for complexome,samplefiles in fn_dict.items():
+    for complexome, samplefiles in fn_dict.items():
         complexome_samples = {}
-        for samplename,fname in samplefiles.items():
+        for samplename, fname in samplefiles.items():
             sample = parse_profile(fname)
             complexome_samples[samplename] = sample
         sample_dict[complexome] = complexome_samples
@@ -91,13 +119,16 @@ def parse_profiles(fn_dict,flat_output=True):
     else:
         return sample_dict
 
+
 def flatten_nested_dict(nested_dict):
     """
+    converts nested dict to flat dict.
     """
     flattened = {}
     for nest in nested_dict.values():
-        flattened = {**flattened,**nest}
+        flattened = {**flattened, **nest}
     return flattened
+
 
 def parse_mapping(tsv_fn):
     """
@@ -116,9 +147,20 @@ def parse_mapping(tsv_fn):
             as_dict[key] = val
         return as_dict
 
+
 def parse_mappings(fn_dict):
-    return {name:parse_mapping(fn)
-            for name,fn in fn_dict.items()}
+    """
+    parses all orthology files in provided fn_dict
+
+    Args:
+        fn_dict (dict): filepaths of orthology files per comparison
+
+    Returns:
+        dict of dicts: parsed pairwise orthologies as dicts
+    """
+    return {name: parse_mapping(fn)
+            for name, fn in fn_dict.items()}
+
 
 def fetch_mapping(left_tag, right_tag, mappings):
     """
@@ -221,12 +263,18 @@ def split_match_ids(df, target_list):
     return copy
 
 
-def parse_orthology(orth_fn):
-    df = pd.read_csv(orth_fn, sep='\t', index_col=0, header=None)
-    return df[1].to_dict()
-
-
 def parse_annotation(annot_fn):
+    """
+    parse annotation file into pd.DataFrame
+
+    Args:
+        annot_fn (string): filepath of annotation file
+            should be tab-separated file with prot_ids
+            as first col and column headers as first row
+
+    Returns:
+        pd.DataFrame: table with protein annotations
+    """
     return pd.read_csv(annot_fn, sep='\t', index_col=0)
 
 
@@ -251,6 +299,14 @@ def parse_scores(score_fn, rename_dups=True):
 
 
 def parse_top_hits(top_hit_fn):
+    """parse a top hit file
+
+    Args:
+        top_hit_fn (string): path of top hit file
+
+    Returns:
+        pd.DataFrame: top hits as dataframe
+    """
     return pd.read_csv(
         top_hit_fn,
         sep='\t',
@@ -263,10 +319,26 @@ def parse_top_hits(top_hit_fn):
 
 
 def parse_network(net_fn):
+    """parses combined network as generated by CompaCt
+
+    Args:
+        net_fn (string): path to combined network file
+
+    Returns:
+        pd.DataFrame: combined network edges in table format
+            columns: left_id,right_id,weight
+    """
     return pd.read_csv(net_fn, sep='\t', header=None)
 
 
 def write_network(net, out_fn):
+    """
+    Saves combined network as generated by CompaCt to file
+
+    Args:
+        net (pd.DataFrame): network to be saved in df format
+        out_fn (string): location of file to write to
+    """
     net.to_csv(out_fn, sep='\t', index=False, header=False)
 
 
@@ -327,6 +399,7 @@ def parse_MCL_result(res_fn):
 
 def annotate_df(to_annot, annot_fn):
     """
+    annotate given dataframe of proteins with annotation file
     """
     annotation = parse_annotation(annot_fn)
     merged = to_annot.merge(
@@ -520,34 +593,3 @@ def parse_gmt(filename):
             complex_dict[name] = members
 
     return complex_dict
-
-
-if __name__ == "__main__":
-
-    # parse combined network
-    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/test_chunk_network.tsv'
-    network_fn = '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/combined_network.tsv'
-
-    net = parse_network(network_fn)
-    print(net.head())
-
-    # filter combined network
-
-    comps = [('CRS86', 'CRS50')]
-    subnet = filter_network(net, comps)
-
-    print(subnet.shape)
-    print(subnet.head())
-
-    # write combined network
-    write_network(
-        subnet,
-        '/home/joerivs/Documents/Apicomplexa_project/results/c12_run_gene_Apr28_results/CRS86_CRS50_subnet.tsv')
-
-    # extract subnetwork
-
-    # parse dataframe to annotate, for testing
-    # to_annot_fn = '../results/top_03_percent_top_hit_clusters_PLASMO.tsv'
-    # to_annot = pd.read_csv(to_annot_fn, sep='\t', index_col=0)
-    # to_annot = to_annot[['average_rbo']]
-    # annotate_df(to_annot, PLASMO_ANNOT_FN)
