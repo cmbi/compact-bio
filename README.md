@@ -60,14 +60,14 @@ CompaCt performs comparative clustering on a collection of (protein) correlation
 
 The aim of CompaCt is to compare (protein) correlation datasets from different species or biological systems. To allow for prioritization of proteins that consistently cluster together in multiple experiments, multiple "replicated" correlation datasets that represent the same system can be provided. In the corresponding manuscript we have demonstrated that this can greatly improve quality of the CompaCt clustering results. A set of correlation datasets representing the same species or system ("replicates") are reffered to as a "collection". 
 
-When using the command-line tool, the files containing these interaction scores should be provided as a tab-separated text file, with the first row and column containing the identifiers of the proteins,genes, etc. An example of an interaction file is available [here](LINK TO EXAMPLE interaction FILE).
+When using the command-line tool, the files containing these interaction scores should be provided as a tab-separated text file, with the first row and column containing the identifiers of the proteins,genes, etc. An example of an interaction file is available [here](https://github.com/joerivstrien/compact/blob/master/example_data/correlated_profile.tsv).
 
-Aside from directly providing correlation/interaction scores between proteins, CompaCt can automatically compute Pearson correlation scores from a matrix of expression/abundance data, like a complexome profile. These will then be used as interaction scores in subsequent CompaCt analysis. Similar to the interaction files, when using the command-line tool these data should be provided as a tab-separated text file, with the first row containing identifiers. An example of a file containing protein protein expression data is available [here](LINK TO EXAMPLE COMPLEXOME PROFILE)
+Aside from directly providing correlation/interaction scores between proteins, CompaCt can automatically compute Pearson correlation scores from a matrix of expression/abundance data, like a complexome profile. These will then be used as interaction scores in subsequent CompaCt analysis. Similar to the interaction files, when using the command-line tool these data should be provided as a tab-separated text file, with the first row containing identifiers. An example of a file containing protein protein expression data is available [here](https://github.com/joerivstrien/compact/blob/master/example_data/abundance_profile.tsv)
 
 
 ### pairwise orthology data
 
-to enable comparison between species, or other datasets with different identifiers, pairwise orthology or identifier mappings need to be provided. The identifier pairs should correspond to the identifiers used in the interaction or expression data. When using the command-line tool, the identifier pairs should be provided as a text file, with two columns separated by a tab. each column contains identifiers of one of the two species this orthology file relates to. An example mapping file is available [here](LINK TO EXAMPLE MAPPING FILE)
+to enable comparison between species, or other datasets with different identifiers, pairwise orthology or identifier mappings need to be provided. The identifier pairs should correspond to the identifiers used in the interaction or expression data. When using the command-line tool, the identifier pairs should be provided as a text file, with two columns separated by a tab. each column contains identifiers of one of the two species this orthology file relates to. An example mapping file is available [here](https://github.com/joerivstrien/compact/blob/master/example_data/pairwise_orthology.tsv)
 
 ### settings file
 
@@ -87,11 +87,11 @@ To prevent an extensive list of input commands when performing CompaCt analysis 
 3. TO collection identifier: the collection identifier for the collection whose identifiers are in the second column of the pairwise orthology file.
 4. the location and name of the file (e.g., path/to/file.tsv)   
 
-The ordering of the files in the input settings file does not matter, as long as the fields are correctly describing it. An example settings file is available [here](LINK TO EXAMPLE SETTINGS FILE)
+The ordering of the files in the input settings file does not matter, as long as the fields are correctly describing it. An example settings file is available [here](https://github.com/joerivstrien/compact/blob/master/example_data/input_settings.tsv)
 
 ### <ins>annotation reference file</ins>
 
-CompaCt is optionally able to automatically annotate the resulting clusters based on overlap with a provided reference set of protein complexes or pathways. The reference should be provided in a file with the [GMT format](https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29), a commonly used and available format to store gene sets for use in for example gene set enrichment analysis. The identifiers used in the reference file should match those of one of the analysed collections/species. An example GMT file with reference complexes is available [here](LINK TO EXAMPLE GMT FILE).
+CompaCt is optionally able to automatically annotate the resulting clusters based on overlap with a provided reference set of protein complexes or pathways. The reference should be provided in a file with the [GMT format](https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#GMT:_Gene_Matrix_Transposed_file_format_.28.2A.gmt.29), a commonly used and available format to store gene sets for use in for example gene set enrichment analysis. The identifiers used in the reference file should match those of one of the analysed collections/species. An example GMT file with reference complexes is available [here](https://github.com/joerivstrien/compact/blob/master/example_data/reference_complexes.gmt).
 
 ## CompaCt Command line Tool
 
