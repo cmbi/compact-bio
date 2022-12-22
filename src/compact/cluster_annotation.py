@@ -110,7 +110,3 @@ def filter_clust_members(clusters, threshold=0.25):
         cur = {key: val for key, val in members.items() if val >= threshold}
         filtered_clusters[name] = cur
     return filtered_clusters
-
-
-if __name__ == "__main__":
-    pass
