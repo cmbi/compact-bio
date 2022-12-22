@@ -1,0 +1,7 @@
+INT	HUMAN	HR1	path/to/human_profile_1.tsv
+INT	HUMAN	HR2	path/to/human_profile_2.tsv
+INT	HUMAN	HR3	path/to/human_profile_3.tsv
+INT	BOVIN	BR1	path/to/bovin_profile_1.tsv
+INT	BOVIN	BR2	path/to/bovin_profile_2.tsv
+INT	BOVIN	BR3	path/to/bovin_profile_3.tsv
+ORTH	BOVIN	HUM	path/to/human_bovin_orthology.tsv
