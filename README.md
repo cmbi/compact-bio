@@ -25,7 +25,7 @@ CompaCt performs automated integrative comparative analysis of large-scale (prot
 CompaCt is implemented as a user-friendly command-line tool, as well as a flexible python package. Both are available after installing the python package and its dependencies. Installing with conda or using docker ensures the required dependencies are available without requiring manual installation.
 
 **dependencies**
-- [Python >= 3.7](https://www.python.org/) (check if that is correct, link..)
+- [Python >= 3.7](https://www.python.org/)
 - [pandas](https://pandas.pydata.org/)
 - [numpy](https://numpy.org/)
 - [rbo](https://github.com/changyaochen/rbo)
