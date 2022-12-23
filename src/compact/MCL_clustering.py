@@ -1,3 +1,13 @@
+"""
+create combined network from rbo scored data, cluster with MCL, and processes cluster results.
+
+main functions
+    - create_combined_network: given rbo scores between datasets, create combined network with normalised scores
+    - run_MCL: runs MCL command line tool as subprocess
+    - separate_subclusters: given MCL clusters, separates per collection, using replicates to compute fraction clustered scores
+    - process_annot_MCL_res: processes MCL clusters into annotated CompaCt clusters and subclusters
+"""
+
 # base library imports
 from itertools import combinations, chain, product
 import subprocess as sp
@@ -80,8 +90,9 @@ def create_combined_network(between_scores, network_fn,
 
     Args:
         [within|between]_scores (list of pd series):
-            top hit scores for each comparison
-        network_fn (string): filepath of outut network
+            top hit scores for each comparison.
+        network_fn (string): 
+            filepath of outut network
         include_within (bool, optional): Defaults to True.
             Whether to include within scores in combined network
         wbratio: numeric
@@ -115,10 +126,14 @@ def run_MCL(input_fn, output_fn, inflation=2, processes=1):
     runs mcl command line tool as subprocess
 
     Args:
-        input_fn (string): filepath of input network to be clustered
-        output_fn (string): filepath of output result
-        inflation (int, optional): mcl inflation param. Defaults to 2.
-        processes (int, optional): number of processes/threads. Defaults to 1.
+        input_fn (string): 
+            filepath of input network to be clustered
+        output_fn (string):
+            filepath of output result
+        inflation (int, optional):
+            mcl inflation param. Defaults to 2.
+        processes (int, optional):
+            number of processes/threads. Defaults to 1.
     """
     eprint('running MCL command line tool..')
     eprint(f'inflation parameter: {inflation}')
@@ -665,11 +680,14 @@ def process_annot_MCL_res(res_fn, nested_tags, network_fn,
     network nodes and edges that are part of clusters for further analysis.
 
     Args:
-        res_fn (str): filepath of MCL output file
-        nested_tags (dict of dicts): nested tag structure for profiles
+        res_fn (str): 
+            filepath of MCL output file
+        nested_tags (dict of dicts): 
+            nested tag structure for profiles
             keys: collection-level tags
             values: sample-level tags
-        network_fn (str): filepath, location of combined network file
+        network_fn (str): 
+            filepath, location of combined network file
         mappings (dict): containing id mappings between collections
             keys: tuple with (query,subject) collection-level tags
             values: dicts with id mappings from query to subject

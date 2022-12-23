@@ -1,5 +1,13 @@
 """
-this script contains the high-level workflow of this project
+This module contains the high-level workflow of this project,
+to run the major steps of the CompaCt analsysis.
+
+The main functions:
+    - between_scoring: rbo scoring between all provided correlation datasets
+    - score_comparison: rbo scoring and top hit selection between two correlation datasete
+    - mcl_clustering: perform clustering on computed rbo scores
+    - process_mcl_result: process raw MCL output to get annotated CompaCt result clusters and subclusters
+    - save_results: save CompaCt results to an output folder of choice
 """
 
 # base imports
@@ -362,7 +370,8 @@ def mcl_clustering(within_top_hits, between_top_hits,
     Args:
         [within|between]_top_hits (pd series):
             dict with within/between top hits per profile/comparison
-        out_folder (string): filepath of output directory
+        out_folder (string): 
+            filepath of output directory
         include_within (bool, optional):Defaults to True.
             whether to include within profile interaction scores
             in combined network used as input for MCL clustering
@@ -419,16 +428,21 @@ def process_mcl_result(
     separate clusters per collection, computes cluster metrics
 
     Args:
-        mcl_outfn (string): filepath of mcl result
-        nested_tags (dict of dicts): nested tag structure for profiles
+        mcl_outfn (string):
+            filepath of mcl result
+        nested_tags (dict of dicts):
+            nested tag structure for profiles
             keys: collection-level tags
             values: sample-level tags
-        network_outfn (string): filepath of combined network
-        mappings (dict): containing id mappings between collections
+        network_outfn (string):
+            filepath of combined network
+        mappings (dict):
+            containing id mappings between collections
             keys: tuple with (query,subject) collection-level tags
             values: dicts with id mappings from query to subject
-        report_threshold (float, optional): in reporting mcl results of
-            multi-sample collections, proteins are counted as member if they are
+        report_threshold (float, optional): 
+            in reporting mcl results of multi-sample collections,
+            proteins are counted as member if they are
             a member of the cluster in a fraction of the
             samples >= report_threshold. Defaults to 0.5.
         filter_clusters (bool, optional): default True
@@ -495,9 +509,12 @@ def save_results(mcl_res, out_folder, mappings):
     process and write human-readable results to file
 
     Args:
-        mcl_res (dict): dictionary with processed clustering results
-        out_folder (string): path of output directory
-        mappings (dict): containing id mappings between collections
+        mcl_res (dict): 
+            dictionary with processed clustering results
+        out_folder (string):
+            path of output directory
+        mappings (dict):
+            containing id mappings between collections
             keys: tuple with (query,subject) collection-level tags
             values: dicts with id mappings from query to subject
     """

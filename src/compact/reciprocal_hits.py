@@ -1,6 +1,9 @@
 """
-find protein pairs that are reciprocal "top" hits
-option for different criteria for "top" hit cut-off
+module to find protein pairs that are reciprocal "top" hits
+with options for different criteria for "top" hit cut-off
+
+main functions:
+    - get_reciprocal_top_hits: determine reciprocal top hits from rbo score matrix between two datasets
 """
 
 # base library  imports
@@ -15,8 +18,10 @@ def get_top_hits(q_id, scores, criterium, percent=None, omit_self=False):
     given a indexed series of scores, returns top hits
 
     Args:
-        q_id (str): query protein identifier
-        scores (pd series): scores with ids for query protein
+        q_id (str): 
+            query protein identifier
+        scores (pd series): 
+            scores with ids for query protein
         criterium ('best' or 'percent'): top hit criterium type
             if 'best': returns only the single best hit
             if 'percent': takes the top n % of highest scoring hits
@@ -55,7 +60,8 @@ def top_hits_to_series(top_hits_dict):
     converts dict with top hits and scores to pd series
 
     Args:
-        top_hits_dict (dict): dictionary with reciprocal
+        top_hits_dict (dict): 
+            dictionary with reciprocal
             top hits. strucure: {('l_id','r_id'):score}
 
     Returns:
@@ -101,7 +107,7 @@ def get_reciprocal_top_hits(scores, score_type='between', criterium='percent',
     Returns:
         pd series: reciprocal top hits in pd series format
             2-level multiindex with id pair, values are scores
-        OR
+            OR
         top_hits_dict (dict): dictionary with reciprocal
             top hits. strucure: {('l_id','r_id'):score}
     """

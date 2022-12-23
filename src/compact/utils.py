@@ -1,3 +1,7 @@
+"""
+module with generally useful functions used in multiple modules
+"""
+
 import sys
 
 try:
@@ -26,8 +30,10 @@ def download_sample_abuns(
     fetch abundances of a sample from CEDAR
 
     Args:
-        sample_id (int): CEDAR CRS number of a sample
-        out_fn (str): filepath, output location
+        sample_id (int): 
+            CEDAR CRS number of a sample
+        out_fn (str): 
+            filepath, output location
         output_ids (list of strings, optional): Defaults to ['prot_ids'].
             the types of protein ids to include in the output.
             options: "prot_ids","prot_names","gene_names"
@@ -63,8 +69,10 @@ def map_df_index(df, mapping):
     original id is used for ids that have no mapping
 
     Args:
-        df (pd.Dataframe): table to map index of
-        mapping (dict): identifier mapping to use
+        df (pd.Dataframe): 
+            table to map index of
+        mapping (dict): 
+            identifier mapping to use
 
     Returns:
         pd.Dataframe: table with mapped index
@@ -87,7 +95,8 @@ def get_stripped_mapping(full_id_list, sep='::'):
     stripped ids are stored in dict mapping back to full ids
 
     Args:
-        full_id_list (list): list of full ids to be stripped
+        full_id_list (list): 
+            list of full ids to be stripped
         sep (str, optional): Defaults to '::'.
             separator between raw id and appendix
 
@@ -116,7 +125,8 @@ def get_comp_mapping(left, right, nested_tags, mappings):
     grab mapping for the current comparison of individual samples
 
     Args:
-        left|right (str): sample-level tags in this comparison
+        left|right (str): 
+            sample-level tags in this comparison
         nested_tags (dict): dict with nested tag structure for profiles
             keys: collection-level tags
             values: sample-level tags
@@ -147,8 +157,10 @@ def get_col_mapping(left, right, mappings):
     grab mapping for comparison of 2 collections from mappings
 
     Args:
-        left/right (string): collection identifiers
-        mappings (dict of dicts): dict with all available mappings
+        left/right (string): 
+            collection identifiers
+        mappings (dict of dicts): 
+            dict with all available mappings
 
     Returns:
         dict: mapping between left and right collections
@@ -172,14 +184,15 @@ def get_comparison_matches(left, right, mapping=None):
     to-be-compared samples, optionally using a mapping
 
     Args:
-        left|right (list-like): indexes of compared samples
+        left|right (list-like): 
+            indexes of compared samples
         mapping (dict or None, optional): Defaults to None.
             dict with id mapping from left to right
             if None ids are directly compared
 
     Returns:
         list: ids that match between indexes
-        OR
+            OR
         dict: matching id pairs from left and right
             key: left id,  value: right id
     """
@@ -197,12 +210,14 @@ def get_cluster_max_fraction(clusters, profile):
     determine fraction in profile where cluster mean abundance is at max
 
     Args:
-        clusters (dict): cluster ids and lists of members
-        profile (pd.DataFrame): table with protein (rows) abundances
+        clusters (dict): 
+            cluster ids and lists of members
+        profile (pd.DataFrame): 
+            table with protein (rows) abundances
             in a number of fractions (columns)
 
     Returns:
-        _type_: _description_
+        dict: for each cluster fraction at which mean abundance is at max value
     """
     # scale profile to weigh each protein equally
     scaled = profile.scale()
@@ -241,4 +256,7 @@ def correlate_samples(samples, method="pearson"):
 
 
 def eprint(*args, **kwargs):
+    """
+    like normal print but writes to stderror
+    """
     print(*args, file=sys.stderr, **kwargs)

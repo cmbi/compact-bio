@@ -10,18 +10,21 @@ import numpy as np
 
 def parse_settings(settings_fn):
     """
-    parse input settings file
+    parse input settings tsvfile
 
     Args:
-        settings_fn (string): path to settings file to be parsed
+        settings_fn (string): 
+            path to settings file to be parsed
 
     Raises:
-        ValueError: if file content doesn't match specifications
+        ValueError: 
+            if file content doesn't match specifications
 
     Returns tuple with (sample_data,mapping_data):
-        saple_data (dict of dicts):
+        sample_data (dict of dicts):
             filenames of interaction data per collection
-        mapping_data (dict): filepaths of orthology files per comparison
+        mapping_data (dict): 
+            filepaths of orthology files per comparison
     """
     sample_data = {}
     mapping_data = {}
@@ -347,11 +350,12 @@ def filter_network(network, comps):
     filter provided comparisons from given network
 
     Args:
-        network (pd df): network containing multiple comparisons
+        network (pd df): 
+            network containing multiple comparisons
         comps (list of tuples):
             comparisons to include in the output network
             comparison (tuple, (str,str)):
-                left and right tags of compared samples
+            left and right tags of compared samples
 
     Returns:
         pd df: subnetwork containing only provided comparisons
@@ -415,7 +419,8 @@ def rename_duplicates(sorted_list, separator="::"):
     in sorted list of ids, renames occurences after first
 
     Args:
-        sorted_list (list): list of string identifiers
+        sorted_list (list): 
+            list of string identifiers
         separator (str, optional): Defaults to "::".
             str that will separate original id and
             number that will be appended
@@ -445,7 +450,8 @@ def remove_appendices(id_list, separator="::"):
     removes trailing appendices from ids
 
     Args:
-        id_list (list): ids that might have appendix
+        id_list (list): 
+            ids that might have appendix
         separator (str, optional): Defaults to "::".
             everything including and after separator will
             be stripped from the string
@@ -461,7 +467,8 @@ def rename_duplicates_int_matrix(df, separator="::"):
     renames duplicate row and col ids inplace in currenf df
 
     Args:
-        df (pd df): dataframe from which duplicate
+        df (pd df): 
+            dataframe from which duplicate
             column and rows will be renamed
 
         separator (str, optional): Defaults to "::".
@@ -516,7 +523,8 @@ def add_tag_multiindex(left_tag, right_tag, multiindex):
     prepend complexome tag to protein ids in 2-level multiindex
 
     Args:
-        [left|right]_tag (str): tag to prepend to ids
+        [left|right]_tag (str): 
+            tag to prepend to ids
         multiindex (pd MultiIndex): 2-level multiindex,
             tags will be prepended to both levels
 
@@ -543,8 +551,10 @@ def split_clustmember_tables(nodes, mappings):
     uses mapping to add mappings to other complexomes
 
     Args:
-        nodes (pd df): table of cluster nodes
-        mappings (dict): containing id mappings between collections
+        nodes (pd df): 
+            table of cluster nodes
+        mappings (dict): 
+            containing id mappings between collections
             keys: tuple with (query,subject) collection-level tags
             values: dicts with id mappings from query to subject
 
@@ -579,7 +589,8 @@ def parse_gmt(filename):
     parses gmt format file with named reference groups
 
     Args:
-        filename (string): filepath of .gmt file
+        filename (string): 
+            filepath of .gmt file
 
     Returns:
         dict: dict with group names and members

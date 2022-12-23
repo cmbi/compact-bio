@@ -1,6 +1,12 @@
 """
-code to perform pairwise similarity based scoring
-of interaction datasets
+module to perform pairwise rbo scoring between interaction datasets
+
+Important functions:
+    - pairwise_rbo_scoring: perform rbo scoring between two interaction matrices
+    - score_comparison: rbo scoring between two correlation datasets
+    - determine_top_weightedness: determine contribution of top d ranks to rbo score
+    - det_search_deph: determine required search depth for given value for p parameter an mininum score weight
+
 """
 # base imports
 from itertools import product
@@ -268,11 +274,13 @@ def pairwise_rbo_scoring(left_scores, right_scores, mapping=False,
     """
     perform rbo scoring between 2 interaction matrices
 
-
     Args:
         [left|right]_scores (pd df): symmetric interaction matrix
             values: within-sample pairwise interaction scores
-        mapping (bool, optional): _description_. Defaults to False.
+        mapping (bool, optional): Defaults to False.
+            if not False: mapping (dict): id mapping/orthology between two collections
+            keys: identifiers of "left" collection
+            values: corresponding identifiers of "right" collection
         p_param (float, optional): Defaults to 0.90.
             Rank Biased Overlap "p" parameter range: 0 to 1
             this parameter determines top-weightedness of rbo metric
@@ -280,8 +288,8 @@ def pairwise_rbo_scoring(left_scores, right_scores, mapping=False,
         search_depth (int, optional): Defaults to None.
             number of ranks to consider when computing RBO scores
             if None, considers complete ranked lists
-        processes (int, optional): number of processes/threads. Defaults to 1.
-
+        processes (int, optional): Defaults to 1.
+            number of processes/threads. 
     Returns:
         pd df: rbo scores for all pairs between left right
             matrix-structured dataframe with:
@@ -353,7 +361,8 @@ def determine_top_weightedness(p, d):
         p (float): Rank Biased Overlap "p" parameter range: 0 to 1
             this parameter determines top-weightedness of rbo metric
             lower values result in more top-weightedness
-        d (int): top d ranks to determine contribution of
+        d (int): 
+            top d ranks for which to determine contribution
 
     Returns:
         float: the fraction of the rbo score that is determined
