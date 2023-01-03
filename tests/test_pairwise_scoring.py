@@ -11,3 +11,9 @@ def test_rename_indices():
         )
     assert ps.rename_indices(
         left,right,mapping) == expected
+    
+def assign_matched():
+    pass
+
+def score_comparison():
+    pass
