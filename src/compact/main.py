@@ -361,7 +361,7 @@ def get_within_top_hits(int_matrices, th_criterium='percent',
 
 
 def mcl_clustering(within_top_hits, between_top_hits,
-                   out_folder, include_within=True,
+                   out_folder, include_within=False,
                    wbratio=1, mcl_inflation=2,
                    processes=1):
     """
@@ -372,7 +372,7 @@ def mcl_clustering(within_top_hits, between_top_hits,
             dict with within/between top hits per profile/comparison
         out_folder (string): 
             filepath of output directory
-        include_within (bool, optional):Defaults to True.
+        include_within (bool, optional):Defaults to False.
             whether to include within profile interaction scores
             in combined network used as input for MCL clustering
         wbratio (int, optional): Defaults to 1.
@@ -561,7 +561,7 @@ def save_results(mcl_res, out_folder, mappings):
 
 def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
          th_criterium='percent', th_percent=1,
-         include_within=True,
+         include_within=False,
          wbratio=1,
          mcl_inflation=2,
          output_location='.',
@@ -602,7 +602,7 @@ def main(nested_tags, int_matrices, mappings, p=0.90, min_search_weight=0.99,
             "best" takes only the single best hit
         th_percent (int, optional): Defaults to 1.
             top percent to consider when using "percent" th_criterium
-        include_within (bool, optional): Defaults to True.
+        include_within (bool, optional): Defaults to False.
             whether to include within sample interaction scores
             in combined network used as input for MCL clustering
         wbratio (int, optional): Defaults to 1.

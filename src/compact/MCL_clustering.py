@@ -82,7 +82,7 @@ def normalise_combined_scores(within_scores, between_scores, wbratio=1):
 
 
 def create_combined_network(between_scores, network_fn,
-                            include_within=True,
+                            include_within=False,
                             within_scores=None,
                             wbratio=1):
     """
@@ -93,7 +93,7 @@ def create_combined_network(between_scores, network_fn,
             top hit scores for each comparison.
         network_fn (string): 
             filepath of outut network
-        include_within (bool, optional): Defaults to True.
+        include_within (bool, optional): Defaults to False.
             Whether to include within scores in combined network
         wbratio: numeric
             ratio between average within/between scores
