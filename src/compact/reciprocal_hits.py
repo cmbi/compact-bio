@@ -12,8 +12,7 @@ from sys import argv
 # third party library imports
 import pandas as pd
 
-
-def get_top_hits(q_id, scores, criterium, percent=None, omit_self=False):
+def get_top_hits(scores, criterium, percent=None, omit_self=False):
     """
     given a indexed series of scores, returns top hits
 
@@ -38,6 +37,7 @@ def get_top_hits(q_id, scores, criterium, percent=None, omit_self=False):
     Returns:
         list of strings: identifiers of top hits for query protein
     """
+    q_id = scores.name
     if omit_self:
         scores.drop(q_id, inplace=True)
     if criterium == 'best':
@@ -47,40 +47,18 @@ def get_top_hits(q_id, scores, criterium, percent=None, omit_self=False):
             msg = 'when criterium is "percent", provide numeric percent argument'
             raise ValueError(msg)
         n = round(len(scores) * (percent / 100))
-        top_hits = list(scores.sort_values(ascending=False).index[:n])
-
+        top_hits = set(scores.sort_values(ascending=False).index[:n])
+    
     else:
         msg = f'criterium not implemented!: {criterium}'
         raise NotImplementedError(msg)
-    return top_hits
+    
+    as_bools = scores.index.isin(top_hits)
+    
+    return as_bools
 
-
-def top_hits_to_series(top_hits_dict):
-    """
-    converts dict with top hits and scores to pd series
-
-    Args:
-        top_hits_dict (dict): 
-            dictionary with reciprocal
-            top hits. strucure: {('l_id','r_id'):score}
-
-    Returns:
-        pd series: reciprocal top hits in pd series format
-            2-level multiindex with id pair, values are scores
-    """
-    as_tuples = [(left, right, score) for (left, right), score in
-                 top_hits_dict.items()]
-    left, right, score = zip(*as_tuples)
-    mindex = pd.MultiIndex.from_tuples(zip(left, right))
-    top_hits = pd.Series(
-        score, index=mindex
-    )
-    top_hits = top_hits.sort_values(ascending=False)
-    return top_hits
-
-
-def get_reciprocal_top_hits(scores, score_type='between', criterium='percent',
-                            percent=1, out_type='series'):
+def get_reciprocal_top_hits(scores,score_type='between',criterium='percent',
+                                 percent=1,out_type='series'):
     """
     determine reciprocal top hits for given score matrix
 
@@ -98,8 +76,8 @@ def get_reciprocal_top_hits(scores, score_type='between', criterium='percent',
         percent (numeric, optional): top percentage Defaults to 1.
             if criterium is percent, returns top n percent of hits
         out_type (str, optional): Defaults to 'series'.
-            if 'series', output is pd series.
-            if anything else output is a dict
+            if 'dict', output is dict.
+            if anything else, output is a dict
 
     Raises:
         ValueError: when score_type parameter is invalid
@@ -119,40 +97,23 @@ def get_reciprocal_top_hits(scores, score_type='between', criterium='percent',
         omit_self = False
     else:
         msg = f'"{score_type}" score type invalid, choose "within" or "between"'
-        raise ValueError(msg)
+        raise ValueError(msg)            
 
-    reciprocal_top_hits = {}
-    # loop over vertical index
-    for q_id, q_scores in scores.iterrows():
+    index_top_hits = scores.apply(
+        get_top_hits,axis=1,args=[criterium],percent=percent,
+            omit_self=omit_self,result_type='broadcast').astype(bool)
+    column_top_hits = scores.apply(
+        get_top_hits,axis=0,args=[criterium],percent=percent,
+                omit_self=omit_self,result_type='broadcast').astype(bool)
 
-        # determine query top hits
-        q_top_hits = get_top_hits(q_id, q_scores, criterium=criterium,
-                                  percent=percent, omit_self=omit_self)
+    reciprocal = index_top_hits & column_top_hits
+    reciprocal_top_hits = scores[reciprocal].stack().sort_values(ascending=False)
 
-        # determine if reciprocal top hits
-        for h_id in q_top_hits:
-            h_scores = scores.loc[:, h_id]
-
-            h_top_hits = get_top_hits(h_id, h_scores, criterium=criterium,
-                                      percent=percent, omit_self=omit_self)
-
-            # if reciprocal top hit, add to results
-            if q_id in h_top_hits:
-                if score_type == 'between':
-                    score = scores.loc[q_id, h_id]
-                    reciprocal_top_hits[(q_id, h_id)] = score
-                else:
-                    keys = reciprocal_top_hits.keys()
-                    f_pair_present = (q_id, h_id) in keys
-                    r_pair_present = (h_id, q_id) in keys
-                    if not f_pair_present and not r_pair_present:
-                        score = scores.loc[q_id, h_id]
-                        reciprocal_top_hits[(q_id, h_id)] = score
-
-    if out_type == 'series':
-        reciprocal_top_hits = top_hits_to_series(reciprocal_top_hits)
-
-    return reciprocal_top_hits
+    if out_type == 'dict':
+        return reciprocal_top_hits.to_dict()
+    
+    else:
+        return reciprocal_top_hits
 
 
 def save_top_hits(top_hits, fn):
