@@ -21,7 +21,7 @@ import pandas as pd
 from . import utils as ut
 from . import process_data as prd
 from .member_selection import select_members
-from .utils import eprint
+from .utils import eprint,get_sample_tags
 
 # check if mcl is available, warn if not
 if not ut.mcl_available():
@@ -338,23 +338,6 @@ def split_clusters(clusts, sample_tags):
                 cur_clust[tag] = sample_members
         nested_clusters[cid] = cur_clust
     return nested_clusters
-
-
-def get_sample_tags(nested_tags):
-    """
-    get list of all replicate tags from nested_tags
-
-    Args:
-        nested_tags (dict of dicts): collection-replicate id structure
-
-    Returns:
-        list: all replicate-level ids
-    """
-    sample_tags = []
-    for tags in nested_tags.values():
-        sample_tags += tags
-    return sample_tags
-
 
 def count_comp_matches(nested_cluster, mappings, nested_tags,
                        get_poss_matches=True):

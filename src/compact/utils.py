@@ -175,6 +175,20 @@ def get_col_mapping(left, right, mappings):
         mapping = False
     return mapping
 
+def get_sample_tags(nested_tags):
+    """
+    get list of all replicate tags from nested_tags
+
+    Args:
+        nested_tags (dict of dicts): collection-replicate id structure
+
+    Returns:
+        list: all replicate-level ids
+    """
+    sample_tags = []
+    for tags in nested_tags.values():
+        sample_tags += tags
+    return sample_tags
 
 def get_comparison_matches(left, right, mapping=None):
     """
