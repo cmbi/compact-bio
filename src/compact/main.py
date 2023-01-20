@@ -11,6 +11,7 @@ The main functions:
 """
 
 # base imports
+from multiprocessing.sharedctypes import Value
 import os
 from itertools import combinations
 
@@ -112,7 +113,7 @@ def validate_params(arg_dict):
 
     Args:
         arguments (dict): main function's locals
-                        used to get command line arguments
+                        used to get all arguments
 
     Raises:
         specific eror related to any problems with input arguments
@@ -138,6 +139,13 @@ def validate_params(arg_dict):
         msg = (f"{th_criterium} is not a valid value"
                " for th_criterium parameter."
                " choose 'percent' or 'best'")
+        raise ValueError(msg)
+
+    # check that replicate-level tags are unique
+    sample_tags = ut.get_sample_tags(arg_dict['nested_tags'])
+    if len(sample_tags) > len(set(sample_tags)):
+        msg = ("replicate ids are not unique."
+               " replicate ids must be unique across collections.")
         raise ValueError(msg)
 
     # check cluster annotation parameter compatibility
