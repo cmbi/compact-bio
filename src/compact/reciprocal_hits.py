@@ -6,12 +6,6 @@ main functions:
     - get_reciprocal_top_hits: determine reciprocal top hits from rbo score matrix between two datasets
 """
 
-# base library  imports
-from sys import argv
-
-# third party library imports
-import pandas as pd
-
 def get_top_hits(scores, criterium, percent=None, omit_self=False):
     """
     given a indexed series of scores, returns top hits

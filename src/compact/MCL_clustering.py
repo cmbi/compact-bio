@@ -30,7 +30,6 @@ if not ut.mcl_available():
 
 # normalise correlation and RBO scores
 
-
 def normalise_scores(scores_list):
     """
     normalise top hit scores correcting for average per comparison
@@ -286,7 +285,7 @@ def get_clust_info(clusters, clusters_split,
 
 def invert_nested_tags(nested_tags):
     """
-    creates sample to collection mapping collection to sample
+    creates sample to collection mapping from collection to sample
 
     Args:
         nested_tags (dict): collection-replicate mapping
@@ -425,7 +424,7 @@ def sum_counts(comp_counts, nested_tags):
     in a way that loops over the total set of comparisons only once
 
     Args:
-        comp_counts (dict): mach counts for all comparisons
+        comp_counts (dict): match counts for all comparisons
         nested_tags (dict): collection-replicate id structure
 
     Returns:

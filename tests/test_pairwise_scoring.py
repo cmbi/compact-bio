@@ -9,7 +9,12 @@ def data():
         'mapping':{'a':'b'},
     }
 
-
+@pytest.fixture
+def comparison():
+    return (
+        ('prot1',['A','B','C']),
+        ('prot2',['B','A','D'])
+    )
 
 def test_rename_indices(data):
     expected = (
@@ -18,9 +23,8 @@ def test_rename_indices(data):
         )
     assert ps.rename_indices(
         data['left'],data['right'],data['mapping']) == expected
-    
-def assign_matched():
-    pass
+   
 
-def score_comparison():
-    pass
+def test_score_comparison(comparison):
+    expected = (('prot1','prot2'),0.14399999999999996)
+    assert ps.score_comparison(comparison,0.9) == expected
