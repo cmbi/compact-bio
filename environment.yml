@@ -72,5 +72,4 @@ dependencies:
   - zlib=1.2.11=h7b6447c_3
   - pip:
     - rbo==0.1.2
-    # - rbo-mcl==0.0.1
 prefix: /home/joerivs/miniconda3/envs/rbomcl
