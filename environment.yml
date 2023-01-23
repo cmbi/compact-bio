@@ -37,3 +37,4 @@ dependencies:
       - pytz==2022.7.1
       - rbo==0.1.2
       - six==1.16.0
+      - compact-bio==0.1.0
