@@ -34,15 +34,18 @@ CompaCt is implemented as a user-friendly command-line tool, as well as a flexib
     -  faster implementation of rank biased overlap, manual installation required. Follow the link for installation instructions. Fastrbo is automatically available when using the docker image
 
 ### pip
-    publication on pip is pending
+installation with pip ensures the python-based dependencies are automatically installed alongside CompaCt. However, MCL (and optionally fastrbo) will still need to be manually installed.
 
-### conda
+    pip install compact-bio
+
+<!-- ### conda
     publication on conda is pending
 
 ### docker
-    docker image is pending
+    docker image is pending -->
 
 ### installation from repository
+
     git clone git@github.com:joerivstrien/compact-bio.git
     cd compact-bio
     pip install .
