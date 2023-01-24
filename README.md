@@ -39,12 +39,14 @@ installation with pip ensures the python-based dependencies are automatically in
     pip install compact-bio
 
 <!-- ### conda
-    publication on conda is pending
+    publication on conda is pending -->
 
-### docker
-    docker image is pending -->
+### Docker
+a docker image is available from dockerhub installation with docker ensures all dependencies are met, including the fastrbo package, ensuring best performance.
 
-### installation from repository
+    docker pull joerivanstrien/compact-bio
+
+### Installation from repository
 
     git clone git@github.com:joerivstrien/compact-bio.git
     cd compact-bio
