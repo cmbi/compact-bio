@@ -1,6 +1,7 @@
 # CompaCt
 
 ![Tests](https://github.com/joerivstrien/compact-bio/actions/workflows/tests.yml/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/compact-bio/badge/?version=latest)](https://compact-bio.readthedocs.io/en/latest/?badge=latest)
 
 ### Comparative Clustering of (protein) interaction data
 
@@ -204,7 +205,7 @@ contains all edges between proteins part of the same cluster, along with additio
 
 ## Python Package
 
-Aside from using the CompaCt command line tool, that performs the complete analysis from expression/abundance datasets to annotated species-specific clusters, CompaCt can also be used as a python package. From python CompaCt can be used more flexibly, for example to rerun only specific steps in the analysis with changed parameters. For complete documentation of all the modules and functions available in the CompaCt package refer to the [package documentation](LINK TO PACKAGE DOCUMENTATION)
+Aside from using the CompaCt command line tool, that performs the complete analysis from expression/abundance datasets to annotated species-specific clusters, CompaCt can also be used as a python package. From python CompaCt can be used more flexibly, for example to rerun only specific steps in the analysis with changed parameters. For complete documentation of all the modules and functions available in the CompaCt package refer to the [package documentation](https://compact-bio.readthedocs.io/en/latest/)
 
 Running a complete CompaCt analysis from python
 
@@ -223,7 +224,7 @@ Running a complete CompaCt analysis from python
     # generate Pearson correlation matrices from the complexome profile abundance data
     corr_matrices = ut.correlate_samples(samples)
 
-    # run complete CompaCt analysis
+    # run complete CompaCt analysisw
     main(
         nested_tags,corr_matrices,mappings,
         output_location='results/',
