@@ -2,6 +2,7 @@
 
 ![Tests](https://github.com/joerivstrien/compact-bio/actions/workflows/tests.yml/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/compact-bio/badge/?version=latest)](https://compact-bio.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7777356.svg)](https://doi.org/10.5281/zenodo.7777356)
 
 ### Comparative Clustering of (protein) interaction data
 
