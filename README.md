@@ -105,9 +105,6 @@ CompaCt is optionally able to automatically annotate the resulting clusters base
 ### when installed with pip or conda
     compact [options] path/to/settings.tsv
 
-### when using Docker
-    coming soon
-
 ### Command Line Arguments
     #################################
     #### commonly useful options ####
@@ -275,4 +272,8 @@ If you have questions or encounter any problems or bugs, please report them in t
 
 ## Citing Compact
 
-Publication Pending
+*Comparative Clustering (CompaCt) of eukaryote complexomes identifies novel interactions and sheds light on protein complex evolution*
+
+ van Strien J, Evers F, Lutikurti M, Berendsen SL, Garanto A, van Gemert GJ, Cabrera-Orefice A, Rodenburg RJ, Brandt U, Kooij TWA, Huynen MA. PLoS Comput Biol. 2023 Aug 7;19(8):e1011090.
+
+[doi.org/10.1371/journal.pcbi.1011090](https://doi.org/10.1371/journal.pcbi.1011090)
